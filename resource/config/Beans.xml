@@ -1,0 +1,235 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.3.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+   
+   <task:annotation-driven/>
+   <context:annotation-config />
+   <context:property-placeholder location="file:${props.path}/kkdystrack.properties"/>
+
+	<!-- Database Access beans -->
+	<bean id="dystifyDB"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+	</bean>
+
+	<bean id="namedParameterJdbcTemplate"
+		class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate">
+		<constructor-arg ref="dystifyDB" />
+	</bean>
+
+
+
+
+	<!-- GUI Beans -->
+	<bean id="mainWindowController" class="com.dystify.kkdystrack.v2.core.util.Util"
+		factory-method="loadController">
+		<constructor-arg value="${resource.mainwindowfxml}" />
+		<property name="foobar" ref="commandLineFoobar"/>
+		<property name="songDao" ref="songDao" />
+		<property name="ruleDao" ref="overrideRuleDao" />
+	</bean>
+	
+	<bean id="addOverrideRuleController" class = "com.dystify.kkdystrack.v2.controller.AddOverrideRuleController" >
+		<constructor-arg value="${resource.addoverridefxml}" />
+		<constructor-arg value="${addoverride.title}"/>
+		<constructor-arg ref="favicon"/>
+	</bean>
+	
+	<bean id="queueAdder" class="com.dystify.kkdystrack.v2.controller.QueueAdder">
+		<constructor-arg value="${resource.queueadderfxml}"/>
+		<constructor-arg value="${queueadder.title}"/>
+		<constructor-arg ref="favicon"/>
+		<property name="queueManager" ref="queueManager"></property>
+	</bean>
+	
+	<bean id="playlistGenerator" class="com.dystify.kkdystrack.v2.core.task.PlaylistGenerator">
+		<constructor-arg value="Playlist Generator"/>
+		<constructor-arg type="int" value="${task.updaterate}"/>
+		<constructor-arg ref="favicon"/>
+		<property name="commitBlockSize" value="${plgen.commitsize}"/>
+		<property name="timePerSong" value="${plgen.timepersong}"/>
+		<property name="songDao" ref="songDao" />
+		<property name="ostTreeRegenAddress" value="${playlist.osttreeregen}"/>
+	</bean>
+	
+	<bean id="pointRecalculator" class="com.dystify.kkdystrack.v2.core.task.PointRecalculator" scope="prototype">
+		<constructor-arg value="Point Recalculator"/>
+		<constructor-arg type="int" value="${task.updaterate}"/>
+		<constructor-arg ref="favicon"/>
+		<property name="timePerSong" value="${pcalc.timepersong}"/>
+		<property name="commitBlockSize" value="${pcalc.commitsize}"/>
+		<property name="songDao" ref="songDao" />
+	</bean>
+	
+	<bean id="favicon" class="javafx.scene.image.Image">
+		<constructor-arg value="#{faviconUrl.toExternalForm()}"/>
+	</bean>
+	
+	<bean id="faviconUrl" class="com.dystify.kkdystrack.v2.core.util.Util" factory-method="loadFile">
+		<constructor-arg value="${resource.favicon}"/>
+	</bean>
+	
+	
+	
+	<bean id="playlistManager" class="com.dystify.kkdystrack.v2.manager.PlaylistManager">
+		<constructor-arg value="${playlist.osttree}"/>
+		<property name="songDao" ref="songDao"/>
+	</bean>
+	
+	<bean id="queueManager" class="com.dystify.kkdystrack.v2.manager.QueueManager">
+		<property name="queueEntryDao" ref="queueEntryDao" />
+		<property name="randomQueue" ref="simpleRandomSongQueue" />
+	</bean>
+	
+	<bean id="overrideRuleManager" class="com.dystify.kkdystrack.v2.manager.OverrideRuleManager">
+		<property name="ruleDao" ref = "overrideRuleDao" />
+	</bean>
+	
+	<bean id="settingsManager" class="com.dystify.kkdystrack.v2.manager.SettingsManager">
+		<property name="settingsDao" ref="settingsDao" />
+	</bean>
+	
+	<bean id="historyManager" class="com.dystify.kkdystrack.v2.manager.HistoryManager">
+		<constructor-arg ref="queueEntryDao" />
+	</bean>
+	
+	<bean id="viewerManager" class="com.dystify.kkdystrack.v2.manager.ViewerManager">
+		<constructor-arg ref="viewerDao" />
+		<property name="dysUserId" value="${viewer.dysid}" />
+		<property name="dystrackUserId" value="${viewer.randuser}"/>
+	</bean>
+	
+	<bean id="propertyManager" class="com.dystify.kkdystrack.v2.manager.PropertyManager">
+	</bean>
+	
+	
+	
+	<bean id="simpleRandomSongQueue" class="com.dystify.kkdystrack.v2.model.queue.SimpleRandomSongQueue">
+		<constructor-arg ref="queueEntryDao" />
+		<constructor-arg type="int" value="${queue.simplerandom.poolsize}" />
+	</bean>
+	
+	
+	
+
+	<!-- Foobar Controller -->
+	<bean id="commandLineFoobar" class="com.dystify.kkdystrack.v2.service.FoobarCommandLine">
+		<constructor-arg value="${foobar.path}"/>
+		<property name="foobarRestartTime" value="${foobar.resettime}" />
+		<property name="queueEmptyCallback" ref="simpleRandomQueueEmptyCallback" />
+	</bean>
+	
+	<bean id="simpleRandomQueueEmptyCallback" class="com.dystify.kkdystrack.v2.service.SimpleRandomQueueEmptyCallback">
+		<constructor-arg ref="simpleRandomSongQueue" />
+	</bean>
+	
+	
+	<!-- Event management -->
+	<bean id="databaseEventListener" class = "com.dystify.kkdystrack.v2.core.event.DatabaseShortPollExternalEventListener">
+		<property name="eventDao" ref="eventDao"/>
+	</bean>
+
+
+
+
+	<!-- DAO beans -->
+	<bean id="preferences" class="java.util.prefs.Preferences" factory-method="userNodeForPackage">
+		<constructor-arg value="com.dystify.kkdystrack.v2.KKDystrack" />
+	</bean>
+	
+	<bean id="queueEntryDao" class="com.dystify.kkdystrack.v2.dao.QueueDAO">
+		<constructor-arg ref="namedParameterJdbcTemplate" />
+	</bean>
+	
+	<bean id="songDao" class="com.dystify.kkdystrack.v2.dao.SongDAO">
+		<constructor-arg ref="namedParameterJdbcTemplate" />
+	</bean>
+	
+	<bean id="playlistDao" class="com.dystify.kkdystrack.v2.dao.PlaylistDAO">
+		<constructor-arg ref="namedParameterJdbcTemplate" />
+	</bean>
+	
+	<bean id="overrideRuleDao" class="com.dystify.kkdystrack.v2.dao.OverrideRuleDAO">
+		<constructor-arg ref="namedParameterJdbcTemplate" />
+	</bean>
+	
+	<bean id="songAliasDao" class="com.dystify.kkdystrack.v2.dao.SongAliasDAO">
+		<constructor-arg ref="namedParameterJdbcTemplate" />
+	</bean>
+	
+	<bean id="viewerDao" class="com.dystify.kkdystrack.v2.dao.ViewerDAO">
+		<constructor-arg ref="namedParameterJdbcTemplate" />
+	</bean>
+	
+	<bean id="eventDao" class="com.dystify.kkdystrack.v2.dao.EventDAO">
+		<constructor-arg ref="namedParameterJdbcTemplate" />
+	</bean>
+	
+	<bean id="settingsDao" class="com.dystify.kkdystrack.v2.dao.SettingsDAO">
+		<constructor-arg ref="namedParameterJdbcTemplate" />
+	</bean>
+	
+	
+	<!-- OutputFiles -->
+	<bean id="fileManager" class="com.dystify.kkdystrack.v2.manager.FileManager">
+		<property name="nowPlayingRating" ref="f_nowPlayingRating" />
+		<property name="songComment" ref="f_songComment" />
+		<property name="requestStatus" ref="f_requestStatus" />
+		<property name="requestedBy" ref="f_requestedBy" />
+		
+		<property name="requestStatusOpenFmt" value="${file.requeststatus.openformat}"/>
+		<property name="requestStatusClosedFmt" value="${file.requeststatus.closedformat}"/>
+		<property name="songCommentFmt" value="${file.songcomment.format}"/>
+		<property name="maxSongLength" value="${file.nowplaying.song.maxlength}"/>
+	</bean>
+	
+	<bean id="f_nowPlayingRating" class="com.dystify.kkdystrack.v2.model.OutputFileWithFollower">
+		<constructor-arg value="${file.nowplayingrating.path}"/>
+		<constructor-arg value="${file.lastplayingrating.path}"/>
+		<property name="maxUpdateRate" value="${file.updaterate}" />
+	</bean>
+	
+	<bean id="f_songComment" class="com.dystify.kkdystrack.v2.model.OutputFile">
+		<constructor-arg value="${file.songcomment.path}"/>
+		<property name="maxUpdateRate" value="${file.updaterate}" />
+	</bean>
+	
+	<bean id="f_requestStatus" class="com.dystify.kkdystrack.v2.model.OutputFile">
+		<constructor-arg value="${file.requeststatus.path}"/>
+		<property name="maxUpdateRate" value="${file.updaterate}" />
+	</bean>
+	
+	<bean id="f_requestedBy" class="com.dystify.kkdystrack.v2.model.OutputFile">
+		<constructor-arg value="${file.requestedby.path}"/>
+		<property name="maxUpdateRate" value="${file.updaterate}" />
+	</bean>
+</beans>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

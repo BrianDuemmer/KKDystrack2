@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="root" prefHeight="948.0" prefWidth="1585.0" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dystify.kkdystrack.v2.controller.MainWindowController">
+   <children>
+      <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <center>
+            <BorderPane prefHeight="88.0" prefWidth="93.0" BorderPane.alignment="CENTER">
+               <center>
+                  <TabPane prefHeight="600.0" prefWidth="1236.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+                    <tabs>
+                      <Tab text="Overview">
+                        <content>
+                          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                 <children>
+                                    <BorderPane prefHeight="637.0" prefWidth="1236.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                       <top>
+                                          <ToolBar prefHeight="37.0" prefWidth="1236.0" BorderPane.alignment="CENTER">
+                                             <items>
+                                                <Button fx:id="addSongBtn" mnemonicParsing="false" onAction="#addSongManual" text="Add..." />
+                                                <Button fx:id="addRandomBtn" mnemonicParsing="false" onAction="#addSongRandom" text="Add Random" />
+                                                <Button fx:id="resetFoobarBtn" mnemonicParsing="false" onAction="#resetFoobar" text="Reset Foobar" />
+                                                <Button fx:id="skipSongBtn" disable="true" mnemonicParsing="false" onAction="#skipSong" text="Skip Song" />
+                                                <Button fx:id="foobarPlayStatusBtn" mnemonicParsing="false" onAction="#foobarPlayStatusBtnPressed" text="Start" />
+                                             </items>
+                                          </ToolBar>
+                                       </top>
+                                       <center>
+                                          <SplitPane dividerPositions="0.04461538461538461" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" BorderPane.alignment="CENTER">
+                                            <items>
+                                                <Label fx:id="currentQueueLbl" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" prefHeight="27.0" prefWidth="802.0" text="Current Queue" />
+                                              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                                                   <children>
+                                                      <TableView fx:id="currentQueue" prefHeight="568.0" prefWidth="618.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                        <columns>
+                                                          <TableColumn fx:id="currentQueue_NameCol" editable="false" prefWidth="384.0" sortable="false" text="Name" />
+                                                          <TableColumn fx:id="currentQueue_OSTCol" editable="false" minWidth="0.0" prefWidth="182.0" sortable="false" text="OST" />
+                                                            <TableColumn fx:id="currentQueue_UsernameCol" editable="false" prefWidth="235.0" sortable="false" text="Username" />
+                                                            <TableColumn fx:id="currentQueue_TimeRequestedCol" editable="false" prefWidth="133.0" resizable="false" sortable="false" text="Time Requested" />
+                                                            <TableColumn fx:id="currentQueue_LengthCol" editable="false" prefWidth="110.0" resizable="false" sortable="false" text="Length" />
+                                                            <TableColumn fx:id="currentQueue_ratingCol" editable="false" prefWidth="100.0" resizable="false" sortable="false" text="Rating" />
+                                                        </columns>
+                                                         <contextMenu>
+                                                            <ContextMenu>
+                                                              <items>
+                                                                  <MenuItem mnemonicParsing="false" onAction="#currentQueue_removeSong" text="Remove Song" />
+                                                              </items>
+                                                            </ContextMenu>
+                                                         </contextMenu>
+                                                      </TableView>
+                                                   </children>
+                                                </AnchorPane>
+                                            </items>
+                                          </SplitPane>
+                                       </center>
+                                       <left>
+                                          <SplitPane dividerPositions="0.046153846153846156, 0.5261538461538462, 0.5769230769230769" orientation="VERTICAL" prefHeight="652.0" prefWidth="300.0" BorderPane.alignment="CENTER">
+                                            <items>
+                                                <Label alignment="CENTER" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" prefHeight="27.0" text="System Settings">
+                                                   <font>
+                                                      <Font name="System Bold" size="12.0" />
+                                                   </font>
+                                                </Label>
+                                                <VBox prefWidth="254.0" spacing="10.0">
+                                                   <children>
+                                                      <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="131.0">
+                                                         <children>
+                                                            <Label contentDisplay="CENTER" maxWidth="1.7976931348623157E308" prefHeight="17.0" prefWidth="138.0" text="Percent Random" HBox.hgrow="ALWAYS">
+                                                               <tooltip>
+                                                                  <Tooltip text="Approximately this percentage of randoms will be integrated into the queue. Goes by time." />
+                                                               </tooltip>
+                                                            </Label>
+                                                            <Slider fx:id="ctlPctRandom" max="1.0" prefHeight="14.0" prefWidth="125.0" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER_LEFT">
+                                                         <children>
+                                                            <Label maxWidth="1.7976931348623157E308" prefHeight="17.0" prefWidth="138.0" text="Min Queue Length" HBox.hgrow="ALWAYS">
+                                                               <tooltip>
+                                                                  <Tooltip text="The queue must be less than this length for requests to automatically open" />
+                                                               </tooltip>
+                                                            </Label>
+                                                            <TextField fx:id="ctlMinQueueLength" alignment="CENTER" prefHeight="25.0" prefWidth="125.0" promptText="hh:mm:ss" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="20.0">
+                                                         <children>
+                                                            <Label contentDisplay="CENTER" maxWidth="1.7976931348623157E308" prefHeight="17.0" prefWidth="138.0" text="Max Queue Length" HBox.hgrow="ALWAYS">
+                                                               <tooltip>
+                                                                  <Tooltip text="The queue must be greater than this length for requests to automatically close" />
+                                                               </tooltip>
+                                                            </Label>
+                                                            <TextField fx:id="ctlMaxQueueLength" alignment="CENTER" prefHeight="25.0" prefWidth="125.0" promptText="hh:mm:ss" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="57.0">
+                                                         <children>
+                                                            <Label contentDisplay="CENTER" maxWidth="1.7976931348623157E308" prefHeight="17.0" prefWidth="138.0" text="Cooldown Points" HBox.hgrow="ALWAYS">
+                                                               <tooltip>
+                                                                  <Tooltip text="A song must have at least this many points before it will be considered on cooldown" />
+                                                               </tooltip>
+                                                            </Label>
+                                                            <TextField fx:id="ctlCooldownPts" alignment="CENTER" prefHeight="25.0" prefWidth="125.0" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="94.0">
+                                                         <children>
+                                                            <Label contentDisplay="CENTER" maxWidth="1.7976931348623157E308" prefHeight="17.0" prefWidth="138.0" text="Song Leadover Time" HBox.hgrow="ALWAYS">
+                                                               <tooltip>
+                                                                  <Tooltip text="The song lead time, pulled from Foobar" />
+                                                               </tooltip>
+                                                            </Label>
+                                                            <TextField fx:id="ctlSongLeadover" alignment="CENTER" prefHeight="25.0" prefWidth="125.0" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="160.0">
+                                                         <children>
+                                                            <Label contentDisplay="CENTER" maxWidth="1.7976931348623157E308" prefHeight="17.0" prefWidth="138.0" text="Playlist Root" HBox.hgrow="ALWAYS">
+                                                               <tooltip>
+                                                                  <Tooltip text="Source directory to search for songs in" />
+                                                               </tooltip>
+                                                            </Label>
+                                                            <TextField fx:id="ctlPlaylistRoot" prefHeight="25.0" prefWidth="186.0" />
+                                                            <Button mnemonicParsing="false" onAction="#openPlaylistRootBrowse" text="..." />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="197.0">
+                                                         <children>
+                                                            <Label contentDisplay="CENTER" maxWidth="1.7976931348623157E308" prefHeight="17.0" prefWidth="138.0" text="Request Mode" HBox.hgrow="ALWAYS">
+                                                               <tooltip>
+                                                                  <Tooltip text="Specifies how requests will operate: forced open, closed, or automatic" />
+                                                               </tooltip>
+                                                            </Label>
+                                                            <ChoiceBox fx:id="ctlRequestMode" prefHeight="25.0" prefWidth="125.0" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="160.0">
+                                                         <children>
+                                                            <Label contentDisplay="CENTER" maxWidth="1.7976931348623157E308" prefHeight="17.0" prefWidth="138.0" text="Base Cost" HBox.hgrow="ALWAYS">
+                                                               <tooltip>
+                                                                  <Tooltip text="Nominal cost of a song" />
+                                                               </tooltip>
+                                                            </Label>
+                                                            <TextField fx:id="ctlBaseCost" alignment="CENTER" prefHeight="25.0" prefWidth="125.0" />
+                                                         </children>
+                                                         <VBox.margin>
+                                                            <Insets />
+                                                         </VBox.margin>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="292.0">
+                                                         <children>
+                                                            <Label contentDisplay="CENTER" maxWidth="1.7976931348623157E308" prefHeight="17.0" prefWidth="138.0" text="Play History Time Checked" HBox.hgrow="ALWAYS">
+                                                               <tooltip>
+                                                                  <Tooltip text="How far back to check when calculating play count" />
+                                                               </tooltip>
+                                                            </Label>
+                                                            <TextField fx:id="ctlTimesPlayedCheck" alignment="CENTER" prefHeight="25.0" prefWidth="125.0" promptText="dd:hh:mm:ss" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="257.0">
+                                                         <children>
+                                                            <Label contentDisplay="CENTER" maxWidth="1.7976931348623157E308" prefHeight="17.0" prefWidth="138.0" text="Stream Lag" HBox.hgrow="ALWAYS">
+                                                               <tooltip>
+                                                                  <Tooltip text="Approx. seconds the stream lags behind the real world" />
+                                                               </tooltip>
+                                                            </Label>
+                                                            <TextField fx:id="ctlStreamLag" alignment="CENTER" prefHeight="25.0" prefWidth="125.0" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="100.0">
+                                                         <children>
+                                                            <Button fx:id="paramSaveBtn" disable="true" mnemonicParsing="false" onAction="#saveParams" text="Save" />
+                                                            <Button fx:id="paramRevertBtn" disable="true" mnemonicParsing="false" onAction="#revertParams" text="Revert" />
+                                                         </children>
+                                                      </HBox>
+                                                   </children>
+                                                   <padding>
+                                                      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                                   </padding>
+                                                </VBox>
+                                                <Label alignment="CENTER" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" prefHeight="27.0" text="System Information">
+                                                   <font>
+                                                      <Font name="System Bold" size="12.0" />
+                                                   </font>
+                                                </Label>
+                                                <VBox prefHeight="272.0" prefWidth="298.0" spacing="15.0">
+                                                   <children>
+                                                      <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="131.0">
+                                                         <children>
+                                                            <Label contentDisplay="CENTER" maxWidth="1.7976931348623157E308" prefHeight="17.0" prefWidth="138.0" text="Queue Open?" HBox.hgrow="ALWAYS">
+                                                               <tooltip>
+                                                                  <Tooltip text="Specifies whether or not requests are currently open" />
+                                                               </tooltip>
+                                                            </Label>
+                                                            <CheckBox fx:id="indQueueOpen" disable="true" mnemonicParsing="false" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="20.0">
+                                                         <children>
+                                                            <Label contentDisplay="CENTER" maxWidth="1.7976931348623157E308" prefHeight="17.0" prefWidth="138.0" text="Queue Length" HBox.hgrow="ALWAYS">
+                                                               <tooltip>
+                                                                  <Tooltip text="Length of the current queue, time wise" />
+                                                               </tooltip>
+                                                            </Label>
+                                                            <Label fx:id="indQueueLen" text="N/A" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="52.0">
+                                                         <children>
+                                                            <Label contentDisplay="CENTER" maxWidth="1.7976931348623157E308" prefHeight="17.0" prefWidth="138.0" text="Queue Size" HBox.hgrow="ALWAYS">
+                                                               <tooltip>
+                                                                  <Tooltip text="Number of songs remaining in queue" />
+                                                               </tooltip>
+                                                            </Label>
+                                                            <Label fx:id="indQueueSize" text="0" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="84.0">
+                                                         <children>
+                                                            <Label contentDisplay="CENTER" maxWidth="1.7976931348623157E308" prefHeight="17.0" prefWidth="138.0" text="Queue Fullness" HBox.hgrow="ALWAYS">
+                                                               <tooltip>
+                                                                  <Tooltip text="Graphical representation of how full the queue is" />
+                                                               </tooltip>
+                                                            </Label>
+                                                            <ProgressBar fx:id="indQueueFullnes" prefWidth="200.0" progress="0.0" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="116.0">
+                                                         <children>
+                                                            <Label contentDisplay="CENTER" maxWidth="1.7976931348623157E308" prefHeight="17.0" prefWidth="138.0" text="RNG in Queue" HBox.hgrow="ALWAYS">
+                                                               <tooltip>
+                                                                  <Tooltip text="How much of the current queue is RNG" />
+                                                               </tooltip>
+                                                            </Label>
+                                                            <ProgressBar fx:id="indQueueRng" prefHeight="18.0" prefWidth="200.0" progress="0.0" />
+                                                         </children>
+                                                      </HBox>
+                                                   </children>
+                                                   <padding>
+                                                      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                                   </padding>
+                                                </VBox>
+                                            </items>
+                                          </SplitPane>
+                                       </left>
+                                    </BorderPane>
+                                 </children>
+                              </AnchorPane>
+                        </content>
+                      </Tab>
+                        <Tab text="Playlist Viewer">
+                          <content>
+                              <TabPane prefHeight="689.0" prefWidth="1449.0" tabClosingPolicy="UNAVAILABLE">
+                                <tabs>
+                                    <Tab text="Songs">
+                                      <content>
+                                          <SplitPane dividerPositions="0.17665615141955837">
+                                             <items>
+                                                <SplitPane dividerPositions="0.5" orientation="VERTICAL">
+                                                   <items>
+                                                      <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Playlist Viewer">
+                                                         <font>
+                                                            <Font name="System Bold" size="12.0" />
+                                                         </font>
+                                                         <padding>
+                                                            <Insets top="5.0" />
+                                                         </padding>
+                                                      </Label>
+                                                      <ScrollPane fitToHeight="true" fitToWidth="true">
+                                                         <content>
+                                                            <TreeView fx:id="ostTree">
+                                                               <contextMenu>
+                                                                  <ContextMenu>
+                                                                    <items>
+                                                                      <MenuItem mnemonicParsing="false" onAction="#removeOst" text="Remove OST..." />
+                                                                    </items>
+                                                                  </ContextMenu>
+                                                               </contextMenu></TreeView>
+                                                         </content>
+                                                      </ScrollPane>
+                                                   </items>
+                                                </SplitPane>
+                                                <TableView fx:id="songsTbl">
+                                                  <columns>
+                                                    <TableColumn fx:id="songsTbl_songName" prefWidth="314.66668701171875" text="Song Name" />
+                                                    <TableColumn fx:id="songsTbl_songLength" minWidth="0.0" prefWidth="43.33331298828125" text="Length" />
+                                                      <TableColumn fx:id="songsTbl_currPts" prefWidth="86.66668701171875" text="Current Points" />
+                                                      <TableColumn fx:id="songsTbl_currCost" prefWidth="82.0" text="Current Cost" />
+                                                      <TableColumn fx:id="songsTbl_lastPlay" prefWidth="85.3333740234375" text="Last Play" />
+                                                      <TableColumn fx:id="songsTbl_timesPlayed" prefWidth="78.66668701171875" text="Times Played" />
+                                                      <TableColumn fx:id="songsTbl_rating" prefWidth="86.6666259765625" text="Rating" />
+                                                      <TableColumn prefWidth="452.0" text="Points Settings">
+                                                         <columns>
+                                                            <TableColumn fx:id="songsTbl_pts_perSong" prefWidth="57.666748046875" text="Song" />
+                                                            <TableColumn fx:id="songsTbl_pts_perOST" prefWidth="50.666748046875" text="OST" />
+                                                            <TableColumn fx:id="songsTbl_pts_perFranchise" prefWidth="69.666748046875" text="Franchise" />
+                                                            <TableColumn fx:id="songsTbl_pts_timeChecked" minWidth="68.0" prefWidth="98.6666259765625" text="Time Checked" />
+                                                            <TableColumn fx:id="songsTbl_pts_activeRule" prefWidth="187.3333740234375" text="Active Rule" />
+                                                         </columns>
+                                                      </TableColumn>
+                                                  </columns>
+                                                   <contextMenu>
+                                                      <ContextMenu>
+                                                        <items>
+                                                          <MenuItem mnemonicParsing="false" onAction="#addSongToCurrentQueue" text="Add to Queue" />
+                                                        </items>
+                                                      </ContextMenu>
+                                                   </contextMenu>
+                                                </TableView>
+                                             </items>
+                                          </SplitPane>
+                                      </content>
+                                    </Tab>
+                                  <Tab text="All Override Rules">
+                                    <content>
+                                          <BorderPane>
+                                             <center>
+                                                <TableView fx:id="overridesTbl" editable="true" prefHeight="658.0" prefWidth="1105.0">
+                                                  <columns>
+                                                    <TableColumn fx:id="overridesTbl_id" prefWidth="475.0" text="Override ID" />
+                                                    <TableColumn fx:id="overridesTbl_songPts" minWidth="0.0" prefWidth="100.0" text="Song Points" />
+                                                      <TableColumn fx:id="overridesTbl_ostPts" prefWidth="119.0" text="OST Points" />
+                                                      <TableColumn fx:id="overridesTbl_franchisePts" prefWidth="174.0" text="Franchise Points" />
+                                                      <TableColumn fx:id="overridesTbl_timeChecked" prefWidth="106.0" text="Time Checked" />
+                                                  </columns>
+                                                   <contextMenu>
+                                                      <ContextMenu>
+                                                        <items>
+                                                          <MenuItem mnemonicParsing="false" onAction="#overridesTbl_addRule" text="Add Rule..." />
+                                                            <MenuItem mnemonicParsing="false" onAction="#overridesTbl_editRule" text="Edit Rule..." />
+                                                            <MenuItem mnemonicParsing="false" onAction="#overridesTbl_dropRule" text="Delete Rule" />
+                                                        </items>
+                                                      </ContextMenu>
+                                                   </contextMenu>
+                                                </TableView>
+                                             </center>
+                                          </BorderPane>
+                                    </content>
+                                  </Tab>
+                                </tabs>
+                              </TabPane>
+                          </content>
+                        </Tab>
+                    </tabs>
+                  </TabPane>
+               </center>
+               <bottom>
+                  <BorderPane prefHeight="185.0" prefWidth="1236.0" BorderPane.alignment="CENTER">
+                     <top>
+                        <SplitPane dividerPositions="0.5" prefHeight="33.0" prefWidth="1236.0" BorderPane.alignment="CENTER">
+                          <items>
+                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="36.0" prefWidth="445.0">
+                                 <children>
+                                    <HBox prefHeight="36.0" prefWidth="613.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                       <children>
+                                          <Label maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="30.0" prefWidth="68.0" text="Output Log">
+                                             <HBox.margin>
+                                                <Insets left="10.0" right="10.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <Button fx:id="clearSysoConsoleBtn" mnemonicParsing="false" onAction="#clearOutConsole" prefHeight="30.0" prefWidth="90.0" text="Clear Console">
+                                             <padding>
+                                                <Insets bottom="5.0" top="5.0" />
+                                             </padding>
+                                             <HBox.margin>
+                                                <Insets left="10.0" />
+                                             </HBox.margin>
+                                          </Button>
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </AnchorPane>
+                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                                 <children>
+                                    <HBox prefHeight="36.0" prefWidth="613.0">
+                                       <children>
+                                          <Label maxHeight="-Infinity" minHeight="-Infinity" prefHeight="30.0" prefWidth="55.0" text="Error Log">
+                                             <HBox.margin>
+                                                <Insets left="10.0" right="10.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <Button fx:id="clearSyserrConsoleBtn" mnemonicParsing="false" onAction="#clearErrConsole" prefHeight="30.0" prefWidth="90.0" text="Clear Console">
+                                             <HBox.margin>
+                                                <Insets left="10.0" />
+                                             </HBox.margin>
+                                          </Button>
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </AnchorPane>
+                          </items>
+                        </SplitPane>
+                     </top>
+                     <center>
+                        <SplitPane dividerPositions="0.5" prefHeight="160.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                          <items>
+                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                                 <children>
+                                    <TextArea fx:id="sysoLogTxtbox" editable="false" prefHeight="150.0" prefWidth="614.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                 </children>
+                              </AnchorPane>
+                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                                 <children>
+                                    <TextArea fx:id="syserrLogTxtbox" editable="false" prefHeight="150.0" prefWidth="614.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                 </children>
+                              </AnchorPane>
+                          </items>
+                        </SplitPane>
+                     </center>
+                  </BorderPane>
+               </bottom>
+               <top>
+                  <Label fx:id="nowPlayingLabel" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Now Playing" textAlignment="CENTER" BorderPane.alignment="CENTER">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Label>
+               </top>
+            </BorderPane>
+         </center>
+         <top>
+            <MenuBar BorderPane.alignment="CENTER">
+              <menus>
+                <Menu mnemonicParsing="false" text="File">
+                  <items>
+                    <MenuItem mnemonicParsing="false" onAction="#exportQueue" text="Export Queue" />
+                        <MenuItem mnemonicParsing="false" onAction="#openSettingsPage" text="Settings..." />
+                  </items>
+                </Menu>
+                  <Menu mnemonicParsing="false" text="Playlist">
+                    <items>
+                        <MenuItem mnemonicParsing="false" onAction="#regenPlaylist" text="Regenerate Playlist" />
+                        <MenuItem mnemonicParsing="false" onAction="#recalcAllPoints" text="Recalculate all Points" />
+                        <SeparatorMenuItem mnemonicParsing="false" />
+                        <MenuItem mnemonicParsing="false" onAction="#cleanPlaylist" text="Clean Playlist" />
+                    </items>
+                  </Menu>
+                  <Menu mnemonicParsing="false" text="About">
+                     <items>
+                        <MenuItem mnemonicParsing="false" onAction="#showCredits" text="Credits" />
+                     </items>
+                  </Menu>
+                  <Menu fx:id="activeQueueMenu" mnemonicParsing="false" text="Active Queue">
+                    <items>
+                        <SeparatorMenuItem mnemonicParsing="false" />
+                        <MenuItem mnemonicParsing="false" onAction="#emptyCurrentQueue" text="Empty Current Queue" />
+                        <MenuItem mnemonicParsing="false" onAction="#createNewQueue" text="New Queue..." />
+                        <MenuItem mnemonicParsing="false" onAction="#deleteForwardQueue" text="Delete Current Queue" />
+                    </items>
+                  </Menu>
+              </menus>
+            </MenuBar>
+         </top>
+      </BorderPane>
+   </children>
+</AnchorPane>

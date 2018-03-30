@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="1.0" xmlns:jfx="http://javafx.com" href="KKDystrack2.jnlp">
+  <information>
+    <title>KKDystrack2</title>
+    <vendor>Dystify</vendor>
+    <description>KKDystrack-Core</description>
+    <offline-allowed/>
+  </information>
+  <resources>
+    <j2se version="1.6+" java-vm-args="-Dprops.path=$APPDIR/app/resource/config "  href="http://java.sun.com/products/autodl/j2se"/>
+    <jar href="KKDystrack2.jar" size="118409" download="eager" />
+    <jar href="libs\gson-2.6.2.jar" size="229650" download="eager" />
+    <jar href="libs\jaudiotagger-2.2.3.jar" size="941715" download="eager" />
+    <jar href="libs\log4j-api-2.9.1.jar" size="239856" download="eager" />
+    <jar href="libs\log4j-core-2.9.1.jar" size="1549868" download="eager" />
+    <jar href="libs\log4j-jcl-2.9.1.jar" size="12634" download="eager" />
+    <jar href="libs\mysql-connector-java-5.1.44-bin.jar" size="999635" download="eager" />
+    <jar href="libs\spring-aop-5.0.1.RELEASE.jar" size="360614" download="eager" />
+    <jar href="libs\spring-aspects-5.0.1.RELEASE.jar" size="41119" download="eager" />
+    <jar href="libs\spring-beans-5.0.1.RELEASE.jar" size="654763" download="eager" />
+    <jar href="libs\spring-context-5.0.1.RELEASE.jar" size="1071235" download="eager" />
+    <jar href="libs\spring-context-indexer-5.0.1.RELEASE.jar" size="17026" download="eager" />
+    <jar href="libs\spring-context-support-5.0.1.RELEASE.jar" size="171897" download="eager" />
+    <jar href="libs\spring-core-5.0.1.RELEASE.jar" size="1210480" download="eager" />
+    <jar href="libs\spring-expression-5.0.1.RELEASE.jar" size="262712" download="eager" />
+    <jar href="libs\spring-instrument-5.0.1.RELEASE.jar" size="1399" download="eager" />
+    <jar href="libs\spring-jcl-5.0.1.RELEASE.jar" size="15666" download="eager" />
+    <jar href="libs\spring-jdbc-5.0.1.RELEASE.jar" size="390640" download="eager" />
+    <jar href="libs\spring-jms-5.0.1.RELEASE.jar" size="253336" download="eager" />
+    <jar href="libs\spring-messaging-5.0.1.RELEASE.jar" size="367679" download="eager" />
+    <jar href="libs\spring-orm-5.0.1.RELEASE.jar" size="184569" download="eager" />
+    <jar href="libs\spring-oxm-5.0.1.RELEASE.jar" size="66684" download="eager" />
+    <jar href="libs\spring-test-5.0.1.RELEASE.jar" size="585018" download="eager" />
+    <jar href="libs\spring-tx-5.0.1.RELEASE.jar" size="249220" download="eager" />
+    <jar href="libs\spring-web-5.0.1.RELEASE.jar" size="1220462" download="eager" />
+    <jar href="libs\spring-webflux-5.0.1.RELEASE.jar" size="653130" download="eager" />
+    <jar href="libs\spring-webmvc-5.0.1.RELEASE.jar" size="780217" download="eager" />
+    <jar href="libs\spring-websocket-5.0.1.RELEASE.jar" size="413778" download="eager" />
+  </resources>
+  <jfx:javafx-desc  width="0" height="0" main-class="com.dystify.kkdystrack.v2.KKDystrack"  name="KKDystrack-Core" />
+  <update check="background"/>
+</jnlp>

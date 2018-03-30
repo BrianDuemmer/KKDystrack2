@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	<project name="KKDystrack2" default="do-deploy" basedir="."  xmlns:fx="javafx:com.sun.javafx.tools.ant">
+	<property name="version" value="0.9.5"/>
+
+	<target name="init-fx-tasks">
+		<path id="fxant">
+			<filelist>
+				<file name="${java.home}\..\lib\ant-javafx.jar"/>
+				<file name="${java.home}\lib\jfxrt.jar"/>
+				<file name="${basedir}" />
+			</filelist>
+		</path>
+	
+		<taskdef resource="com/sun/javafx/tools/ant/antlib.xml"
+			uri="javafx:com.sun.javafx.tools.ant"
+			classpathref="fxant"/>
+	</target>
+	<target name="setup-staging-area">
+		<delete dir="externalLibs" />
+		<delete dir="project" />
+		<delete dir="projectRefs" />
+		<delete dir="build"/>
+		<delete dir="deploy"/>
+		<delete dir="dist"/>
+	
+		<mkdir dir="externalLibs" />
+	
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\mysql-connector-java-5.1.44">
+				<filename name="mysql-connector-java-5.1.44-bin.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-instrument-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-webflux-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-context-indexer-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-aop-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-jms-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-context-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\apache-log4j-2.9.1-bin">
+				<filename name="log4j-jcl-2.9.1.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-expression-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-tx-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\apache-log4j-2.9.1-bin">
+				<filename name="log4j-api-2.9.1.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-web-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-core-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-websocket-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-messaging-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-webmvc-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\jaudiotagger">
+				<filename name="jaudiotagger-2.2.3.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-jdbc-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\apache-log4j-2.9.1-bin">
+				<filename name="log4j-core-2.9.1.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\gson-2.6.2">
+				<filename name="gson-2.6.2.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-orm-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-test-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-aspects-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-jcl-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-context-support-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-beans-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="C:\lib\spring-framework-5.0.1.RELEASE\libs">
+				<filename name="spring-oxm-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+	
+		<mkdir dir="project" />
+		<copy todir="project">
+			<fileset dir="C:\dev\KKDystrack2">
+				<include name="resource/**" />
+			</fileset>
+		</copy>
+		<copy todir="project">
+			<fileset dir="C:\dev\KKDystrack2">
+				<include name="src/**" />
+			</fileset>
+		</copy>
+	
+		<mkdir dir="projectRefs" />
+	</target>
+	<target name='do-compile'>
+		<delete dir="build" />
+		<mkdir dir="build/src" />
+		<mkdir dir="build/libs" />
+		<mkdir dir="build/classes" />
+	
+		<!-- Copy project-libs references -->
+		<copy todir="build/libs">
+			<fileset dir="externalLibs">
+				<include name="spring-messaging-5.0.1.RELEASE.jar"/>
+				<include name="log4j-api-2.9.1.jar"/>
+				<include name="spring-context-support-5.0.1.RELEASE.jar"/>
+				<include name="log4j-jcl-2.9.1.jar"/>
+				<include name="spring-jcl-5.0.1.RELEASE.jar"/>
+				<include name="spring-jms-5.0.1.RELEASE.jar"/>
+				<include name="spring-context-5.0.1.RELEASE.jar"/>
+				<include name="spring-websocket-5.0.1.RELEASE.jar"/>
+				<include name="jaudiotagger-2.2.3.jar"/>
+				<include name="spring-webmvc-5.0.1.RELEASE.jar"/>
+				<include name="spring-beans-5.0.1.RELEASE.jar"/>
+				<include name="spring-instrument-5.0.1.RELEASE.jar"/>
+				<include name="spring-aop-5.0.1.RELEASE.jar"/>
+				<include name="spring-webflux-5.0.1.RELEASE.jar"/>
+				<include name="mysql-connector-java-5.1.44-bin.jar"/>
+				<include name="spring-context-indexer-5.0.1.RELEASE.jar"/>
+				<include name="spring-web-5.0.1.RELEASE.jar"/>
+				<include name="spring-oxm-5.0.1.RELEASE.jar"/>
+				<include name="spring-orm-5.0.1.RELEASE.jar"/>
+				<include name="gson-2.6.2.jar"/>
+				<include name="spring-expression-5.0.1.RELEASE.jar"/>
+				<include name="spring-tx-5.0.1.RELEASE.jar"/>
+				<include name="spring-aspects-5.0.1.RELEASE.jar"/>
+				<include name="log4j-core-2.9.1.jar"/>
+				<include name="spring-test-5.0.1.RELEASE.jar"/>
+				<include name="spring-jdbc-5.0.1.RELEASE.jar"/>
+				<include name="spring-core-5.0.1.RELEASE.jar"/>
+			</fileset>
+		</copy>
+	
+		<!-- Copy project references -->
+	
+		<!-- Copy project sources itself -->
+		<copy todir="build/src">
+			<fileset dir="project/src">
+				<include name="**/*"/>
+			</fileset>
+		</copy>
+		<!-- <copy todir="build/src">
+			<fileset dir="project/resource">
+				<include name="**/*"/>
+			</fileset>
+		</copy> -->
+	
+		<javac includeantruntime="false" source="1.8" target="1.8" srcdir="build/src" destdir="build/classes" encoding="Cp1252">
+			<classpath>
+				<fileset dir="build/libs">
+					<include name="*"/>
+				</fileset>
+			</classpath>
+		</javac>
+	
+		<!-- Copy over none Java-Files -->
+		<copy todir="build/classes">
+		<fileset dir="project/src">
+			<exclude name="**/*.java"/>
+		</fileset>
+		<!-- <fileset dir="project/resource">
+			<exclude name="**/*.java"/>
+		</fileset> -->
+		</copy>
+	
+	
+	</target>
+	<target name="do-deploy" depends="setup-staging-area, do-compile, init-fx-tasks">
+		<delete file="dist"/>
+		<delete file="deploy" />
+	
+		<mkdir dir="dist" />
+		<mkdir dir="dist/libs" />
+	
+		<copy todir="dist/libs">
+			<fileset dir="externalLibs">
+				<include name="*" />
+			</fileset>
+		</copy>
+		
+		<mkdir dir="dist/resource" />
+		<copy todir="dist/resource">
+			<fileset dir="project/resource">
+				<include name="**/*" />
+			</fileset>
+		</copy>
+	
+		
+		<fx:resources id="appRes">
+			<fx:fileset dir="dist" includes="KKDystrack2.jar"/>
+			<fx:fileset dir="dist" includes="libs/*"/>
+			<fx:fileset dir="dist" includes="resource/**"/>
+		</fx:resources>
+	
+		<fx:application id="fxApplication"
+			name="KKDystrack-Core"
+			mainClass="com.dystify.kkdystrack.v2.KKDystrack"
+			toolkit="fx"
+			version="${version}"
+		/>
+	
+		<mkdir dir="build/classes/META-INF" />
+	
+	
+	
+		<fx:jar destfile="dist/KKDystrack2.jar">
+			<fx:application refid="fxApplication"/>
+			<fileset dir="build/classes">
+			</fileset>
+			<fx:resources refid="appRes"/>
+	
+			<manifest>
+				<attribute name="Implementation-Vendor" value="Dystify"/>
+				<attribute name="Implementation-Title" value="KKDystrack-Core"/>
+				<attribute name="Implementation-Version" value="${version}"/>
+				<attribute name="SplashScreen-Image" value="ui/splash.png"/>
+				<attribute name="JavaFX-Feature-Proxy" value="None"/>
+			</manifest>
+		</fx:jar>
+	
+	
+		<mkdir dir="deploy" />
+		<!-- Need to use ${basedir} because somehow the ant task is calculating the directory differently -->
+		<fx:deploy
+			verbose="true" 
+			embedJNLP="false"
+			extension="false"
+			includeDT="false"
+			offlineAllowed="true"
+			outdir="${basedir}/deploy"
+			outfile="KKDystrack2" nativeBundles="exe"
+			updatemode="background" >
+	
+			<fx:platform basedir="${java.home}">
+				<fx:jvmarg value="-Dprops.path=$APPDIR/app/resource/config" />
+			</fx:platform>
+			<fx:info title="KKDystrack2" vendor="Dystify"/>
+	
+			<fx:application refId="fxApplication"/>
+			<fx:resources refid="appRes"/>
+		</fx:deploy>
+	
+	
+	</target>
+</project>
