@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +35,6 @@ public class SongDAO
 {
 	private NamedParameterJdbcTemplate jdbcTemplate;
 	private static Logger log = LogManager.getLogger(SongDAO.class);
-	private String tempSongIdTblName;
 	
 	public static class SongRowMapper implements RowMapper<Song>
 	{
@@ -394,11 +394,39 @@ public class SongDAO
 	}
 	
 	/**
-	 * Writes the given Song IDs to a temp table
-	 * @param songIds
+	 * Writes the given Song IDs to a temp table, `song_id_tmp`
+	 * @param songIds song IDs to write
+	 * @param clean if true, will wipe any preexisting songs from the table. If if doesn't exist,
+	 * this has no effect
 	 */
-	public void writeSongIDsToTempTbl(List<String> songIds) {
+	public void writeSongIDsToTempTbl(List<String> songIds, boolean clean) {
+		if(clean) { // wipe it first
+			dropSongIdTempTable();
+		}
 		
+		// setup new table
+		String sqlCreate = "CREATE TABLE IF EXISTS song_id_tmp "
+				+ "( song_id` VARCHAR(255) NOT NULL, UNIQUE `sid_uniq` (`song_id`(255)) "
+				+ ") ENGINE = MEMORY";
+		jdbcTemplate.getJdbcOperations().execute(sqlCreate);
+		
+		//write SIDs
+		String sqlIns = "INSERT INTO song_id_tmp song_id VALUES(:sid:)";
+		List<MapSqlParameterSource> params = new LinkedList<>();
+		for(String s: songIds) {
+			params.add(new MapSqlParameterSource("song_id", s));
+		}
+		jdbcTemplate.batchUpdate(sqlIns, params.toArray(new MapSqlParameterSource[params.size()]));
+	}
+
+
+
+	/**
+	 * Drops the song id temp table. If that doesn't exist, this has no effect
+	 */
+	public void dropSongIdTempTable() {
+		String sqlDrop = "DROP TABLE IF EXISTS song_id_tmp";
+		jdbcTemplate.getJdbcOperations().execute(sqlDrop);
 	}
 	
 	
@@ -433,13 +461,6 @@ public class SongDAO
 		for(File f : dirs)
 			ret.addAll(getAllSongFiles(f));
 		return ret;
-	}
-
-
-
-
-	public void setTempSongIdTblName(String tempSongIdTblName) {
-		this.tempSongIdTblName = tempSongIdTblName;
 	}
 	
 	
