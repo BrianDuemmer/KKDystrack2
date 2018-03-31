@@ -84,9 +84,13 @@ public class PlaylistGenerator extends AbstractBackgroundTask
 					} 
 				catch (SongException e) {
 					log.error("Encountered exception loading song from file at \"" +allSongs.get(numOn).getAbsolutePath()+ "\" DETAILS:");
-					log.error(e);
+//					log.error(e);
+//					e.printStackTrace();
 				}
 			}
+			
+			//gotta update the total amount, as some songs may have failed to be added
+			numTotal = loadedSongs.size();
 			
 			// push them to the database. Do two runs, and  record the number newly added that will need point recalculations
 			isUploadingText = "Committing newly added songs...";

@@ -63,10 +63,10 @@ public class SongDAO
 						
 						s.setCostRule(new OverrideRuleDAO.OverrideRuleRowMapper().mapRow(rs, rowNum));
 					} else { // song isn't in the playlist, attempt to file load
-						s = SongDAO.loadFromFile(new File(songId));
+						s = loadFromFile(new File(songId));
 					}
 				} else {
-					throw new SongException("Unable to load song information, SongID was not specified!");
+					throw new SongException("SongRowMapper - Unable to load song information, SongID was not specified!");
 				}
 			} catch (SongException e) {
 				log.error(e);
@@ -249,20 +249,23 @@ public class SongDAO
 			AudioFile f = AudioFileIO.read(songFile);
 			Tag t = f.getTag();
 
-			s.setSongLength(f.getAudioHeader().getTrackLength());
-			s.setSongName(t.getFirst(FieldKey.TITLE));
-			s.setOstName(t.getFirst(FieldKey.ALBUM));
+			if(t != null) {
+				s.setSongName(t.getFirst(FieldKey.TITLE));
+				s.setOstName(t.getFirst(FieldKey.ALBUM));
+			}
 			
+			s.setSongLength(f.getAudioHeader().getTrackLength());
 			s.setSongId(songFile.getAbsolutePath());
 			s.setSongFranchise(songFile.getParentFile().getParentFile().getName());
 
 			// Just use file / directory names for song / ost names if they are empty (not an MP3 or missing tag data)
-			if(s.getSongName().isEmpty())
+			if(s.getSongName() == null || s.getSongName().isEmpty())
 				s.setSongName(songFile.getName().substring(0, songFile.getName().lastIndexOf('.'))); // remove extension
 
-			if(s.getOstName().isEmpty())
+			if(s.getOstName() == null || s.getOstName().isEmpty())
 				s.setOstName(songFile.getParentFile().getName());
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new SongException(e);
 		}
 		
