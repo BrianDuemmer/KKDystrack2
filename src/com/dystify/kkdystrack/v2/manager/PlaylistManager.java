@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -33,6 +34,8 @@ public class PlaylistManager extends AbstractManager
 	private ObservableList<Song> playlistContents;
 	private String ostTreeLocation;
 	private StringProperty playlistRoot;
+	
+	private int songIdTempTblCommitBlockSize;
 
 
 	public PlaylistManager(String ostTreeLocation) {
@@ -129,7 +132,32 @@ public class PlaylistManager extends AbstractManager
 	 * Any other songs are dropped from the playlist table
 	 */
 	public void removeNonPlaylistFromDB() {
-		List<File> allSongs = SongDAO.getAllSongFiles(new File(playlistRoot.get()));
+		Util.runNewDaemon("Remove Non PLayist From DB", () -> {
+			log.info("Removing non-playlist songs from songlist...");
+			List<File> allSongs = SongDAO.getAllSongFiles(new File(playlistRoot.get()));
+			
+			int total = allSongs.size();
+			int numOn = 0;
+			int onNext = 0;
+			log.info(String.format("%d songs found in playlist", total));
+			while(numOn < total) {
+				// get SIDs to commit this iteration
+				onNext = Math.min(total, numOn + this.songIdTempTblCommitBlockSize);
+				List<File> filesThisIteration = allSongs.subList(numOn, onNext);
+				List<String> songsThisIteration = new LinkedList<>();
+				filesThisIteration.forEach((fil) -> songsThisIteration.add(fil.getAbsolutePath()));
+				
+				this.songDao.writeSongIDsToTempTbl(songsThisIteration, numOn == 0); // only clean on the first iteration
+				log.info(String.format("Wrote songs %d - %d of %d", numOn, onNext, total));
+				numOn = onNext;
+			}
+			
+			// clear the playlist
+			int numDropped = songDao.dropSongsNotInSongIdTempTable();
+			log.info(String.format("Removed %d songs from the playlist", numDropped));
+			
+			songDao.dropSongIdTempTable();
+		});
 	}
 
 
@@ -176,6 +204,11 @@ public class PlaylistManager extends AbstractManager
 
 	public void setPlaylistRoot(StringProperty playlistRoot) {
 		this.playlistRoot = playlistRoot;
+	}
+
+
+	public void setSongIdTempTblCommitBlockSize(int songIdTempTblCommitBlockSize) {
+		this.songIdTempTblCommitBlockSize = songIdTempTblCommitBlockSize;
 	}
 
 }

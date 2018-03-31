@@ -405,16 +405,16 @@ public class SongDAO
 		}
 		
 		// setup new table
-		String sqlCreate = "CREATE TABLE IF EXISTS song_id_tmp "
-				+ "( song_id` VARCHAR(255) NOT NULL, UNIQUE `sid_uniq` (`song_id`(255)) "
+		String sqlCreate = "CREATE TABLE IF NOT EXISTS song_id_tmp "
+				+ "( song_id VARCHAR(255) NOT NULL, UNIQUE sid_uniq (song_id(255)) "
 				+ ") ENGINE = MEMORY";
 		jdbcTemplate.getJdbcOperations().execute(sqlCreate);
 		
 		//write SIDs
-		String sqlIns = "INSERT INTO song_id_tmp song_id VALUES(:sid:)";
+		String sqlIns = "INSERT INTO song_id_tmp VALUES(:sid)";
 		List<MapSqlParameterSource> params = new LinkedList<>();
 		for(String s: songIds) {
-			params.add(new MapSqlParameterSource("song_id", s));
+			params.add(new MapSqlParameterSource("sid", s));
 		}
 		jdbcTemplate.batchUpdate(sqlIns, params.toArray(new MapSqlParameterSource[params.size()]));
 	}
@@ -427,6 +427,16 @@ public class SongDAO
 	public void dropSongIdTempTable() {
 		String sqlDrop = "DROP TABLE IF EXISTS song_id_tmp";
 		jdbcTemplate.getJdbcOperations().execute(sqlDrop);
+	}
+	
+	
+	/**
+	 * Removes any songs from the playlist table that aren't in the temp table of song IDs
+	 * @return the number of songs dropped from the table
+	 */
+	public int dropSongsNotInSongIdTempTable() {
+		String sql = "DELETE FROM playlist WHERE song_id NOT IN (SELECT song_id FROM song_id_tmp)";
+		return jdbcTemplate.getJdbcOperations().update(sql);
 	}
 	
 	

@@ -85,6 +85,7 @@
 	<bean id="playlistManager" class="com.dystify.kkdystrack.v2.manager.PlaylistManager">
 		<constructor-arg value="${playlist.osttree}"/>
 		<property name="songDao" ref="songDao"/>
+		<property name="songIdTempTblCommitBlockSize" value="${playlist.songIdTempTblCommitBlockSize}" />
 	</bean>
 	
 	<bean id="queueManager" class="com.dystify.kkdystrack.v2.manager.QueueManager">

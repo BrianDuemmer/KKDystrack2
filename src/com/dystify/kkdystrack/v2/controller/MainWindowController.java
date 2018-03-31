@@ -38,8 +38,6 @@ import com.dystify.kkdystrack.v2.model.Song;
 import com.dystify.kkdystrack.v2.model.queue.SongQueue;
 import com.dystify.kkdystrack.v2.service.MusicPlayer;
 import com.dystify.kkdystrack.v2.service.MusicPlayerState;
-import com.sun.javafx.image.AlphaType;
-
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
@@ -420,7 +418,18 @@ public class MainWindowController
 	
 	@FXML void cleanPlaylist(ActionEvent event) {
 		Alert a = new Alert(AlertType.CONFIRMATION);
-		a.setContentText("This will reset ALL cooldown and play statistics for songs not ");
+		a.setContentText("This will reset ALL cooldown and play statistics for songs not in the playlist directory! Continue?");
+		a.setTitle("Clean Playlist");
+		a.setHeaderText("Clean Playlist");
+		
+		Optional<ButtonType> btn = a.showAndWait();
+		if(btn.isPresent() && btn.get() == ButtonType.OK) {
+			playlistManager.removeNonPlaylistFromDB();
+			Alert f = new Alert(AlertType.INFORMATION);
+			f.setContentText("Finished cleaning playlist");
+			f.setTitle("Clean Playlist");
+			f.setHeaderText("Clean Playlist");
+		}
 	}
 
 	@FXML void recalcAllPoints(ActionEvent event) {
@@ -534,6 +543,7 @@ public class MainWindowController
 		ostTree.getSelectionModel().selectedItemProperty().addListener((observable, oldVal, newVal) -> {
 			playlistManager.refreshSongList();
 		});
+		playlistManager.setPlaylistRoot(ctlPlaylistRoot.textProperty());
 
 		// prepare the tableViews
 		initQueueTbl();
