@@ -466,7 +466,7 @@ public class SongDAO
 	public static List<File> getAllSongFiles(File root) {
 		
 		// basic recursive directory crawler
-		File[] dirs = root.listFiles(File::isDirectory);
+		File[] dirs = root.listFiles(Util::isLegalSongDirectory);
 		File[] songsInDir = root.listFiles(Util::isLegalAudioFileExtension);
 		List<File> ret = new ArrayList<>();
 		for(File f : songsInDir)
