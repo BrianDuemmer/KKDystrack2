@@ -252,6 +252,8 @@ public class SongDAO
 			if(t != null) {
 				s.setSongName(t.getFirst(FieldKey.TITLE));
 				s.setOstName(t.getFirst(FieldKey.ALBUM));
+			} else {
+				log.warn("No tag found for song \"" +songFile.getAbsolutePath()+ "\""); // alert that a broken file was encountered
 			}
 			
 			s.setSongLength(f.getAudioHeader().getTrackLength());
@@ -264,7 +266,7 @@ public class SongDAO
 
 			if(s.getOstName() == null || s.getOstName().isEmpty())
 				s.setOstName(songFile.getParentFile().getName());
-		} catch (Exception e) {
+		} catch (Exception e) { // propagate any errors
 			e.printStackTrace();
 			throw new SongException(e);
 		}

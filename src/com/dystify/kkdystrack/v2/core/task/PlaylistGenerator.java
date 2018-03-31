@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,7 +42,6 @@ public class PlaylistGenerator extends AbstractBackgroundTask
 {
 	private int commitBlockSize;
 	private double timePerSong;
-	private String ostTreeRegenAddress;
 	@Autowired private PointRecalculator pointRecalculator;
 	@Autowired private PlaylistManager playlistManager;
 	
@@ -69,90 +69,32 @@ public class PlaylistGenerator extends AbstractBackgroundTask
 	protected void start() {
 		log.info("Starting playlist Generator...");
 		taskThread = new Thread(() -> {
-			List<File> allSongs = SongDAO.getAllSongFiles(new File(playlistRoot));
-			numTotal = allSongs.size();
-			List<Song> loadedSongs = new ArrayList<>();
-			
-			
-			// load each song
-			log.trace("Loading songs...");
-			for(numOn=0; numOn<numTotal; numOn++) {
-				if(shouldAbort) { break; }
-				try { 
-					currSong = SongDAO.loadFromFile(allSongs.get(numOn)); 
-					loadedSongs.add(currSong);
-					} 
-				catch (SongException e) {
-					log.error("Encountered exception loading song from file at \"" +allSongs.get(numOn).getAbsolutePath()+ "\" DETAILS:");
-//					log.error(e);
-//					e.printStackTrace();
-				}
-			}
+			List<Song> loadedSongs = loadAllSongs(playlistRoot);
 			
 			//gotta update the total amount, as some songs may have failed to be added
 			numTotal = loadedSongs.size();
 			
 			// push them to the database. Do two runs, and  record the number newly added that will need point recalculations
-			isUploadingText = "Committing newly added songs...";
 			isUploading = true;
+			isUploadingText = "Writing new songs to DB";
 			log.info(isUploadingText);
+			List<Song> addedNew = writeSongsToDB(loadedSongs, true);
 			
-			// commit changes in blocks
-			List<Song> addedNew = new ArrayList<>();
-			numOn = 0;
-			int wasOn = 0;
-			do {
-				if(shouldAbort) { break; }
-				numOn = Math.min(numTotal-1, numOn+commitBlockSize);
-				addedNew.addAll(songDao.writeToPlaylist(loadedSongs.subList(wasOn, numOn), true)); // first add the new stuff
-				wasOn = numOn;
-			} while(numOn < numTotal-1);
-			
-			// remove all that stuff we just committed from the list of stuff we want to add
-			for(Song s : addedNew)
-				loadedSongs.remove(s);
-			
-			// commit the rest of them
+			// remove all that stuff we just committed from the list of stuff we want to add, and add the rest
+			for(Song s : addedNew) { loadedSongs.remove(s); }
 			isUploadingText = "Updating all songs...";
 			log.info(isUploadingText);
-			numTotal = loadedSongs.size();
-			numOn = 0;
-			wasOn = 0;
+			writeSongsToDB(loadedSongs, false);
 			
-			// Write to the database in blocks
-			do {
-				if(shouldAbort) { break; }
-				numOn = Math.min(numTotal-1, numOn+commitBlockSize);
-				songDao.writeToPlaylist(loadedSongs.subList(wasOn, numOn), false);
-				wasOn = numOn;
-			} while(numOn < numTotal-1);
-			
-			// at this point this task is essentially done, and we can exit as we want
+			// at this point this task is essentially done, and we can exit as we want. Reload the OST tree and refresh it here
 			isDone = true;
-			
-			// we don't actually need the output, but just to regenerate it, and block until it's finished
-			try { Util.getUrlContents(new URL(ostTreeRegenAddress)); } 
-			catch (IOException e) { log.fatal("Failed to update OST tree"); log.fatal(e); }
+			playlistManager.generateOstTree();
 			playlistManager.refreshOstTree();
 			
-			// prompt to run point calc routines
+			// prompt to run point calc routines, if necessary
 			if(addedNew.size() > 0) {
 				Platform.runLater(() -> {
-					Alert a = new Alert(AlertType.CONFIRMATION);
-					a.setTitle("Confirm Point Recalculation");
-					a.setHeaderText("Some songs need to have points calculated!");
-					
-					String content = String.format("%d songs require point calculations. This will take "
-							+ "approximately %s. Run this now?", 
-							addedNew.size(), 
-							Util.secondsToTimeString(pointRecalculator.getTimePerSong() * addedNew.size()));
-					
-					a.setContentText(content);
-					Optional<ButtonType> b = a.showAndWait();
-					if(b.get() == ButtonType.OK) { // launch the point recalculator
-						pointRecalculator.setSongstoCalc(addedNew);
-						pointRecalculator.startTask();
-					}
+					promptAndRunPointCalc(addedNew);
 				});
 			}
 		});
@@ -163,6 +105,90 @@ public class PlaylistGenerator extends AbstractBackgroundTask
 		taskThread.start();
 	}
 
+	
+	
+
+	/**
+	 * Takes all the song objects specified, and writes those that aren't already there to the database
+	 * @param loadedSongs all the correctly loaded songs that need to be written
+	 * @param skipDuplicates if true, will only write songs that aren't already in the playlist
+	 * @return a List of all the songs that were added new, i.e. they weren't in the database before 
+	 * now
+	 */
+	private List<Song> writeSongsToDB(List<Song> loadedSongs, boolean skipDuplicates) {
+		// commit changes in blocks
+		List<Song> addedNew = new ArrayList<>();
+		numOn = 0;
+		int wasOn = 0;
+		do {
+			if(shouldAbort) { break; }
+			numOn = Math.min(numTotal-1, numOn+commitBlockSize);
+			addedNew.addAll(songDao.writeToPlaylist(loadedSongs.subList(wasOn, numOn), skipDuplicates)); // first add the new stuff
+			wasOn = numOn;
+		} while(numOn < numTotal-1);
+		return addedNew;
+	}
+
+	
+	
+
+	/**
+	 * Loads all song objects from the song files, while reporting the progress via class fields
+	 * @param rootDir the directory to search for songs in
+	 * @return a List of all the songs that were loaded
+	 */
+	private List<Song> loadAllSongs(String rootDir) {
+		List<File> allSongs = SongDAO.getAllSongFiles(new File(rootDir));
+		numTotal = allSongs.size();
+		
+		// actually load the songs. Will implicitly check for broken files and discard them
+		List<Song> loadedSongs = new ArrayList<>();
+		
+		
+		// load each song
+		log.trace("Loading songs...");
+		for(numOn=0; numOn<numTotal; numOn++) {
+			if(shouldAbort) { break; }
+			try { 
+				currSong = SongDAO.loadFromFile(allSongs.get(numOn)); 
+				loadedSongs.add(currSong);
+				} 
+			catch (SongException e) {
+				log.error("Encountered exception loading song from file at \"" +allSongs.get(numOn).getAbsolutePath()+ "\" DETAILS:");
+				log.error(e);
+			}
+		}
+		return loadedSongs;
+	}
+
+	
+	
+	
+	/**
+	 * Will prompt the user if they want to recalculate points, and will launch the point calculator if they do
+	 * @param addedNew
+	 */
+	private void promptAndRunPointCalc(List<Song> addedNew) {
+		Alert a = new Alert(AlertType.CONFIRMATION);
+		a.setTitle("Confirm Point Recalculation");
+		a.setHeaderText("Some songs need to have points calculated!");
+		
+		String content = String.format("%d songs require point calculations. This will take "
+				+ "approximately %s. Run this now?", 
+				addedNew.size(), 
+				Util.secondsToTimeString(pointRecalculator.getTimePerSong() * addedNew.size()));
+		
+		a.setContentText(content);
+		Optional<ButtonType> b = a.showAndWait();
+		if(b.get() == ButtonType.OK) { // launch the point recalculator
+			pointRecalculator.setSongstoCalc(addedNew);
+			pointRecalculator.startTask();
+		}
+	}
+
+	
+	
+	
 	@Override
 	protected void abort() {
 		shouldAbort = true;

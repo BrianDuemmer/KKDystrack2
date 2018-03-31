@@ -36,6 +36,7 @@ public class PlaylistManager extends AbstractManager
 	private StringProperty playlistRoot;
 	
 	private int songIdTempTblCommitBlockSize;
+	private String ostTreeRegenAddress;
 
 
 	public PlaylistManager(String ostTreeLocation) {
@@ -117,6 +118,16 @@ public class PlaylistManager extends AbstractManager
 	}
 	
 	
+	/**
+	 * Calls the PHP script that regenerates the OST tree
+	 */
+	public void generateOstTree() {
+		// we don't actually need the output, but just to regenerate it, and block until it's finished
+		try { Util.getUrlContents(new URL(ostTreeRegenAddress)); } 
+		catch (IOException e) { log.fatal("Failed to update OST tree"); log.fatal(e); }
+	}
+	
+	
 	
 	
 	public void dropOst() {
@@ -134,16 +145,20 @@ public class PlaylistManager extends AbstractManager
 	public void removeNonPlaylistFromDB() {
 		Util.runNewDaemon("Remove Non PLayist From DB", () -> {
 			log.info("Removing non-playlist songs from songlist...");
-			List<File> allSongs = SongDAO.getAllSongFiles(new File(playlistRoot.get()));
+			List<File> allSongFiles = SongDAO.getAllSongFiles(new File(playlistRoot.get()));
+			List<Song> allSongs = new LinkedList<>();
+			for(File f : allSongFiles) {
+				
+			}
 			
-			int total = allSongs.size();
+			int total = allSongFiles.size();
 			int numOn = 0;
 			int onNext = 0;
 			log.info(String.format("%d songs found in playlist", total));
 			while(numOn < total) {
 				// get SIDs to commit this iteration
 				onNext = Math.min(total, numOn + this.songIdTempTblCommitBlockSize);
-				List<File> filesThisIteration = allSongs.subList(numOn, onNext);
+				List<File> filesThisIteration = allSongFiles.subList(numOn, onNext);
 				List<String> songsThisIteration = new LinkedList<>();
 				filesThisIteration.forEach((fil) -> songsThisIteration.add(fil.getAbsolutePath()));
 				
@@ -209,6 +224,11 @@ public class PlaylistManager extends AbstractManager
 
 	public void setSongIdTempTblCommitBlockSize(int songIdTempTblCommitBlockSize) {
 		this.songIdTempTblCommitBlockSize = songIdTempTblCommitBlockSize;
+	}
+
+
+	public void setOstTreeRegenAddress(String ostTreeRegenAddress) {
+		this.ostTreeRegenAddress = ostTreeRegenAddress;
 	}
 
 }
