@@ -4,3 +4,5 @@
  !build/build.xml
  
  resource/config/kkdystrack.properties
+ 
+ *.class

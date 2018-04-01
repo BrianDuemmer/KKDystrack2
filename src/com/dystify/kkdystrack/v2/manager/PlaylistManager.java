@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -33,6 +34,9 @@ public class PlaylistManager extends AbstractManager
 	private ObservableList<Song> playlistContents;
 	private String ostTreeLocation;
 	private StringProperty playlistRoot;
+	
+	private int songIdTempTblCommitBlockSize;
+	private String ostTreeRegenAddress;
 
 
 	public PlaylistManager(String ostTreeLocation) {
@@ -114,6 +118,16 @@ public class PlaylistManager extends AbstractManager
 	}
 	
 	
+	/**
+	 * Calls the PHP script that regenerates the OST tree
+	 */
+	public void generateOstTree() {
+		// we don't actually need the output, but just to regenerate it, and block until it's finished
+		try { Util.getUrlContents(new URL(ostTreeRegenAddress)); } 
+		catch (IOException e) { log.fatal("Failed to update OST tree at " +ostTreeRegenAddress); log.fatal(e); }
+	}
+	
+	
 	
 	
 	public void dropOst() {
@@ -125,11 +139,28 @@ public class PlaylistManager extends AbstractManager
 	
 	
 	/**
-	 * Checks the playlist root, and determines all the songs that should be in the playlist.
-	 * Any other songs are dropped from the playlist table
+	 * Writes all the songs in {@code allSongs} to the song id temp table. This will create, 
+	 * but not delete, the table
 	 */
-	public void removeNonPlaylistFromDB() {
-		List<File> allSongs = SongDAO.getAllSongFiles(new File(playlistRoot.get()));
+	public void writeAllToSongIdTempTable(List<Song> allSongs) {
+		int total = allSongs.size();
+		int numOn = 0;
+		int onNext = 0;
+		while(numOn < total) {
+			// get SIDs to commit this iteration
+			onNext = Math.min(total, numOn + this.songIdTempTblCommitBlockSize);
+			List<Song> songsThisIteration = allSongs.subList(numOn, onNext);
+			List<String> songIDsThisIteration = new LinkedList<>();
+			songsThisIteration.forEach((fil) -> songIDsThisIteration.add(fil.getSongId()));
+			
+			this.songDao.writeSongIDsToTempTbl(songIDsThisIteration, numOn == 0); // only clean on the first iteration
+			log.info(String.format("Wrote songs %d - %d of %d", numOn, onNext, total));
+			numOn = onNext;
+		}
+		
+		// clear the playlist
+		int numDropped = songDao.dropSongsNotInSongIdTempTable();
+		log.info(String.format("Removed %d songs from the playlist", numDropped));
 	}
 
 
@@ -176,6 +207,16 @@ public class PlaylistManager extends AbstractManager
 
 	public void setPlaylistRoot(StringProperty playlistRoot) {
 		this.playlistRoot = playlistRoot;
+	}
+
+
+	public void setSongIdTempTblCommitBlockSize(int songIdTempTblCommitBlockSize) {
+		this.songIdTempTblCommitBlockSize = songIdTempTblCommitBlockSize;
+	}
+
+
+	public void setOstTreeRegenAddress(String ostTreeRegenAddress) {
+		this.ostTreeRegenAddress = ostTreeRegenAddress;
 	}
 
 }

@@ -31,23 +31,18 @@ public class PointRecalculator extends AbstractBackgroundTask
 
 
 	@Override
-	protected void start() {
+	protected void runTask() {
 		if(songstoCalc != null && songstoCalc.size() > 0) {
-			Thread t = new Thread(() -> {
-				int wasOn = 0;
-				numOn = 0;
-				do {
-					if(shouldAbort ) { break; }
-					currSong = songstoCalc.get(numOn);
-					numOn = Math.min(songstoCalc.size()-1, wasOn+commitBlockSize);
-					songDao.calculatePoints(songstoCalc.subList(wasOn, numOn));
-					wasOn = numOn;
-				} while(numOn < songstoCalc.size()-1);
-				finished = true;
-			});
-			t.setDaemon(true);
-			t.setName("Point Calculation");
-			t.start();
+			int wasOn = 0;
+			numOn = 0;
+			do {
+				if(shouldAbort ) { break; }
+				currSong = songstoCalc.get(numOn);
+				numOn = Math.min(songstoCalc.size()-1, wasOn+commitBlockSize);
+				songDao.calculatePoints(songstoCalc.subList(wasOn, numOn));
+				wasOn = numOn;
+			} while(numOn < songstoCalc.size()-1);
+			finished = true;
 		} else {
 			finished = true;
 			Platform.runLater(() -> {
@@ -55,7 +50,7 @@ public class PointRecalculator extends AbstractBackgroundTask
 				a.setTitle("Error calculating points");
 				a.setHeaderText("Songs not set!");
 				a.setContentText("Songs to calculate points for must be specified!");
-				
+
 				a.showAndWait();
 			});
 		}
@@ -98,13 +93,13 @@ public class PointRecalculator extends AbstractBackgroundTask
 	public boolean isFinished() {
 		return finished;
 	}
-	
-	
+
+
 	@Override
 	public void reset() {
 		this.finished = false;
 		this.shouldAbort = false;
-		
+
 	}
 
 

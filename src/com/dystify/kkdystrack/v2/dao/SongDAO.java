@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +35,6 @@ public class SongDAO
 {
 	private NamedParameterJdbcTemplate jdbcTemplate;
 	private static Logger log = LogManager.getLogger(SongDAO.class);
-	private String tempSongIdTblName;
 	
 	public static class SongRowMapper implements RowMapper<Song>
 	{
@@ -63,10 +63,10 @@ public class SongDAO
 						
 						s.setCostRule(new OverrideRuleDAO.OverrideRuleRowMapper().mapRow(rs, rowNum));
 					} else { // song isn't in the playlist, attempt to file load
-						s = SongDAO.loadFromFile(new File(songId));
+						s = loadFromFile(new File(songId));
 					}
 				} else {
-					throw new SongException("Unable to load song information, SongID was not specified!");
+					throw new SongException("SongRowMapper - Unable to load song information, SongID was not specified!");
 				}
 			} catch (SongException e) {
 				log.error(e);
@@ -249,20 +249,25 @@ public class SongDAO
 			AudioFile f = AudioFileIO.read(songFile);
 			Tag t = f.getTag();
 
-			s.setSongLength(f.getAudioHeader().getTrackLength());
-			s.setSongName(t.getFirst(FieldKey.TITLE));
-			s.setOstName(t.getFirst(FieldKey.ALBUM));
+			if(t != null) {
+				s.setSongName(t.getFirst(FieldKey.TITLE));
+				s.setOstName(t.getFirst(FieldKey.ALBUM));
+			} else {
+				log.warn("No tag found for song \"" +songFile.getAbsolutePath()+ "\""); // alert that a broken file was encountered
+			}
 			
+			s.setSongLength(f.getAudioHeader().getTrackLength());
 			s.setSongId(songFile.getAbsolutePath());
 			s.setSongFranchise(songFile.getParentFile().getParentFile().getName());
 
 			// Just use file / directory names for song / ost names if they are empty (not an MP3 or missing tag data)
-			if(s.getSongName().isEmpty())
+			if(s.getSongName() == null || s.getSongName().isEmpty())
 				s.setSongName(songFile.getName().substring(0, songFile.getName().lastIndexOf('.'))); // remove extension
 
-			if(s.getOstName().isEmpty())
+			if(s.getOstName() == null || s.getOstName().isEmpty())
 				s.setOstName(songFile.getParentFile().getName());
-		} catch (Exception e) {
+		} catch (Exception e) { // propagate any errors
+			e.printStackTrace();
 			throw new SongException(e);
 		}
 		
@@ -394,11 +399,58 @@ public class SongDAO
 	}
 	
 	/**
-	 * Writes the given Song IDs to a temp table
-	 * @param songIds
+	 * Writes the given Song IDs to a temp table, `song_id_tmp`
+	 * @param songIds song IDs to write
+	 * @param clean if true, will wipe any preexisting songs from the table. If if doesn't exist,
+	 * this has no effect
 	 */
-	public void writeSongIDsToTempTbl(List<String> songIds) {
+	public void writeSongIDsToTempTbl(List<String> songIds, boolean clean) {
+		if(clean) { // wipe it first
+			dropSongIdTempTable();
+		}
 		
+		// setup new table
+		String sqlCreate = "CREATE TABLE IF NOT EXISTS song_id_tmp "
+				+ "( song_id VARCHAR(255) NOT NULL, UNIQUE sid_uniq (song_id(255)) "
+				+ ") ENGINE = MEMORY";
+		jdbcTemplate.getJdbcOperations().execute(sqlCreate);
+		
+		//write SIDs
+		String sqlIns = "INSERT INTO song_id_tmp VALUES(:sid)";
+		List<MapSqlParameterSource> params = new LinkedList<>();
+		for(String s: songIds) {
+			params.add(new MapSqlParameterSource("sid", s));
+		}
+		jdbcTemplate.batchUpdate(sqlIns, params.toArray(new MapSqlParameterSource[params.size()]));
+	}
+
+
+
+	/**
+	 * Drops the song id temp table. If that doesn't exist, this has no effect
+	 */
+	public void dropSongIdTempTable() {
+		String sqlDrop = "DROP TABLE IF EXISTS song_id_tmp";
+		jdbcTemplate.getJdbcOperations().execute(sqlDrop);
+	}
+	
+	
+	/**
+	 * Removes any songs from the playlist table that aren't in the temp table of song IDs
+	 * @return the number of songs dropped from the table
+	 */
+	public int dropSongsNotInSongIdTempTable() {
+		String sql = "DELETE FROM playlist WHERE song_id NOT IN (SELECT song_id FROM song_id_tmp)";
+		return jdbcTemplate.getJdbcOperations().update(sql);
+	}
+	
+	
+	/**
+	 * Fetches the number of songs that are in the playlist table, but not in the temp song ID table
+	 */
+	public int getCountSongsInPlaylistNotInTempTable() {
+		String sql = "SELECT COUNT(*) AS count FROM playlist WHERE song_id NOT IN (SELECT song_id FROM song_id_tmp)";
+		return (int) jdbcTemplate.queryForMap(sql, new MapSqlParameterSource()).get("count");
 	}
 	
 	
@@ -425,7 +477,7 @@ public class SongDAO
 	public static List<File> getAllSongFiles(File root) {
 		
 		// basic recursive directory crawler
-		File[] dirs = root.listFiles(File::isDirectory);
+		File[] dirs = root.listFiles(Util::isLegalSongDirectory);
 		File[] songsInDir = root.listFiles(Util::isLegalAudioFileExtension);
 		List<File> ret = new ArrayList<>();
 		for(File f : songsInDir)
@@ -433,13 +485,6 @@ public class SongDAO
 		for(File f : dirs)
 			ret.addAll(getAllSongFiles(f));
 		return ret;
-	}
-
-
-
-
-	public void setTempSongIdTblName(String tempSongIdTblName) {
-		this.tempSongIdTblName = tempSongIdTblName;
 	}
 	
 	

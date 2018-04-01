@@ -38,8 +38,6 @@ import com.dystify.kkdystrack.v2.model.Song;
 import com.dystify.kkdystrack.v2.model.queue.SongQueue;
 import com.dystify.kkdystrack.v2.service.MusicPlayer;
 import com.dystify.kkdystrack.v2.service.MusicPlayerState;
-import com.sun.javafx.image.AlphaType;
-
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
@@ -418,9 +416,21 @@ public class MainWindowController
 		plGen.startTask();
 	}
 	
-	@FXML void cleanPlaylist(ActionEvent event) {
+	/**
+	 * Prompts the user asking if they want to clean the playlist, and if they select yes, launches the
+	 * playlist generator in clean mode
+	 * @param event
+	 */
+	@FXML void cleanBuildPlaylist(ActionEvent event) {
 		Alert a = new Alert(AlertType.CONFIRMATION);
-		a.setContentText("This will reset ALL cooldown and play statistics for songs not ");
+		a.setContentText("This will reset ALL cooldown and play statistics for songs not in the playlist directory! Continue?");
+		a.setTitle("Clean Build Playlist");
+		a.setHeaderText("Clean Build Playlist");
+		
+		Optional<ButtonType> btn = a.showAndWait();
+		if(btn.isPresent() && btn.get() == ButtonType.OK) {
+			plGen.startTask(true);
+		}
 	}
 
 	@FXML void recalcAllPoints(ActionEvent event) {
@@ -534,6 +544,7 @@ public class MainWindowController
 		ostTree.getSelectionModel().selectedItemProperty().addListener((observable, oldVal, newVal) -> {
 			playlistManager.refreshSongList();
 		});
+		playlistManager.setPlaylistRoot(ctlPlaylistRoot.textProperty());
 
 		// prepare the tableViews
 		initQueueTbl();

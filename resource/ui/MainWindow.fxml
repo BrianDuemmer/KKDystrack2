@@ -460,7 +460,7 @@
                         <MenuItem mnemonicParsing="false" onAction="#regenPlaylist" text="Regenerate Playlist" />
                         <MenuItem mnemonicParsing="false" onAction="#recalcAllPoints" text="Recalculate all Points" />
                         <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem mnemonicParsing="false" onAction="#cleanPlaylist" text="Clean Playlist" />
+                        <MenuItem mnemonicParsing="false" onAction="#cleanBuildPlaylist" text="Clean Generate Playlist" />
                     </items>
                   </Menu>
                   <Menu mnemonicParsing="false" text="About">

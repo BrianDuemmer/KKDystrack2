@@ -38,7 +38,7 @@ public class QueueDAO
 		@Override public QueueEntry mapRow(ResultSet rs, int rowNum) throws SQLException {
 			QueueEntry q = new QueueEntry();
 
-			// extract the subsidiary parts ar regular rows
+			// extract the subsidiary parts as regular rows
 			Song s = new SongDAO.SongRowMapper().mapRow(rs, rowNum);
 			Viewer v = new ViewerDAO.ViewerRowMapper().mapRow(rs, rowNum);
 
