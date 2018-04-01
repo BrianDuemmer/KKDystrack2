@@ -86,7 +86,7 @@
 		<constructor-arg value="${playlist.osttree}"/>
 		<property name="songDao" ref="songDao"/>
 		<property name="songIdTempTblCommitBlockSize" value="${playlist.songIdTempTblCommitBlockSize}" />
-		<property name="ostTreeRegenAddress" value="${playlist.osttreeregen}">
+		<property name="ostTreeRegenAddress" value="${playlist.osttreeregen}" />
 	</bean>
 	
 	<bean id="queueManager" class="com.dystify.kkdystrack.v2.manager.QueueManager">

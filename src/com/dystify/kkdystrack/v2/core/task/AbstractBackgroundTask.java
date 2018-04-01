@@ -103,7 +103,14 @@ public abstract class AbstractBackgroundTask extends SelfManagedFxmlUI
 	 */
 	public void startTask() {
 		ScheduledExecutorService sex = Executors.newSingleThreadScheduledExecutor();
-		start();
+		Util.runNewDaemon("Task_" +title, () ->  {
+			try { runTask(); }
+			catch (Exception e) {
+				log.fatal("Exception running task \"" +title+ "\"", e);
+				aborted = true;
+				abort();
+			}
+		});
 		stage.show();
 		Runnable updater = () -> {
 			Platform.runLater(() -> {
@@ -124,7 +131,7 @@ public abstract class AbstractBackgroundTask extends SelfManagedFxmlUI
 		new Thread(()->{
 			int start = (int) (System.currentTimeMillis() / 1000);
 			sex.scheduleWithFixedDelay(updater, 0, uiUpdaterMillis, TimeUnit.MILLISECONDS);
-			while(!isFinished()) // wait for it to finish
+			while(!isFinished() && !aborted) // wait for it to finish
 				try {Thread.sleep(100);}catch(Exception e) {}
 			sex.shutdown();
 			Platform.runLater(() -> {
@@ -147,7 +154,7 @@ public abstract class AbstractBackgroundTask extends SelfManagedFxmlUI
 	
 	
 	/** Starts the task running. This should be an asynchronous call! */
-	protected abstract void start();
+	protected abstract void runTask();
 	
 	/** Ends the task immediately. It is safe to assume the user already authorized it after a warning*/
 	protected abstract void abort();
