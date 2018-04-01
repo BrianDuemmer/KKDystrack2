@@ -445,6 +445,15 @@ public class SongDAO
 	}
 	
 	
+	/**
+	 * Fetches the number of songs that are in the playlist table, but not in the temp song ID table
+	 */
+	public int getCountSongsInPlaylistNotInTempTable() {
+		String sql = "SELECT COUNT(*) AS count FROM playlist WHERE song_id NOT IN (SELECT song_id FROM song_id_tmp)";
+		return (int) jdbcTemplate.queryForMap(sql, new MapSqlParameterSource()).get("count");
+	}
+	
+	
 	
 	/**
 	 * Gets the number of songs that a given song_id filter applies to

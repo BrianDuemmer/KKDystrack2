@@ -60,7 +60,7 @@
 		<property name="commitBlockSize" value="${plgen.commitsize}"/>
 		<property name="timePerSong" value="${plgen.timepersong}"/>
 		<property name="songDao" ref="songDao" />
-		<property name="ostTreeRegenAddress" value="${playlist.osttreeregen}"/>
+		<!-- <property name="ostTreeRegenAddress" value="${playlist.osttreeregen}"/> -->
 	</bean>
 	
 	<bean id="pointRecalculator" class="com.dystify.kkdystrack.v2.core.task.PointRecalculator" scope="prototype">

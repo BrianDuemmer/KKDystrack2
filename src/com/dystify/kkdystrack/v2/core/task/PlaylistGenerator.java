@@ -58,10 +58,29 @@ public class PlaylistGenerator extends AbstractBackgroundTask
 	private boolean isUploading = false;
 	private Song currSong = new Song(); // current song under processing
 	private int totalEta = -1;
+	private boolean clearNonPlaylist = false;
 	
 	
 	public PlaylistGenerator(String title, int uiUpdateRate, Image favicon) throws IOException {
 		super(title, uiUpdateRate, favicon);
+	}
+	
+	
+	/**
+	 * Sets the playlist generator running
+	 * @param clearNonPlaylist if true, will wipe any songs that weren't in the filesystem from the
+	 * playlist
+	 */
+	public void startTask(boolean clearNonPlaylist) {
+		this.clearNonPlaylist = clearNonPlaylist;
+		super.startTask();
+	}
+	
+	
+	@Override
+	public void startTask() {
+		this.clearNonPlaylist = false; // default to false
+		super.startTask();
 	}
 	
 	
@@ -70,12 +89,20 @@ public class PlaylistGenerator extends AbstractBackgroundTask
 		log.info("Starting playlist Generator...");
 		taskThread = new Thread(() -> {
 			List<Song> loadedSongs = loadAllSongs(playlistRoot);
-			
-			//gotta update the total amount, as some songs may have failed to be added
 			numTotal = loadedSongs.size();
 			
-			// push them to the database. Do two runs, and  record the number newly added that will need point recalculations
+			// Write all the song IDs to the song id temp table
 			isUploading = true;
+			
+//			int numNotInTmpBefore = 0;
+			if(clearNonPlaylist) {
+				isUploadingText = "Recording which songs will be added...";
+				log.info(isUploadingText);
+				playlistManager.writeAllToSongIdTempTable(loadedSongs);
+//				numNotInTmpBefore = songDao.getCountSongsInPlaylistNotInTempTable();
+			}
+			
+			// push all songs to the playlist table
 			isUploadingText = "Writing new songs to DB";
 			log.info(isUploadingText);
 			List<Song> addedNew = writeSongsToDB(loadedSongs, true);
@@ -86,8 +113,15 @@ public class PlaylistGenerator extends AbstractBackgroundTask
 			log.info(isUploadingText);
 			writeSongsToDB(loadedSongs, false);
 			
+			// remove the songs from the playlist
+			if(clearNonPlaylist) {
+				isUploadingText = "Removing non-playlis songs from playlist table";
+				log.info(isUploadingText);
+				int numDropped = songDao.dropSongsNotInSongIdTempTable();
+				log.info(String.format("Removed %d songs", numDropped));
+			}
+			
 			// at this point this task is essentially done, and we can exit as we want. Reload the OST tree and refresh it here
-			isDone = true;
 			playlistManager.generateOstTree();
 			playlistManager.refreshOstTree();
 			
@@ -97,6 +131,7 @@ public class PlaylistGenerator extends AbstractBackgroundTask
 					promptAndRunPointCalc(addedNew);
 				});
 			}
+			isDone = true;
 		});
 			
 			
@@ -118,6 +153,7 @@ public class PlaylistGenerator extends AbstractBackgroundTask
 	private List<Song> writeSongsToDB(List<Song> loadedSongs, boolean skipDuplicates) {
 		// commit changes in blocks
 		List<Song> addedNew = new ArrayList<>();
+		numTotal = loadedSongs.size();
 		numOn = 0;
 		int wasOn = 0;
 		do {
@@ -281,11 +317,6 @@ public class PlaylistGenerator extends AbstractBackgroundTask
 
 	public void setPlaylistManager(PlaylistManager playlistManager) {
 		this.playlistManager = playlistManager;
-	}
-
-
-	public void setOstTreeRegenAddress(String ostTreeRegenAddress) {
-		this.ostTreeRegenAddress = ostTreeRegenAddress;
 	}
 }
 

@@ -416,19 +416,20 @@ public class MainWindowController
 		plGen.startTask();
 	}
 	
-	@FXML void cleanPlaylist(ActionEvent event) {
+	/**
+	 * Prompts the user asking if they want to clean the playlist, and if they select yes, launches the
+	 * playlist generator in clean mode
+	 * @param event
+	 */
+	@FXML void cleanBuildPlaylist(ActionEvent event) {
 		Alert a = new Alert(AlertType.CONFIRMATION);
 		a.setContentText("This will reset ALL cooldown and play statistics for songs not in the playlist directory! Continue?");
-		a.setTitle("Clean Playlist");
-		a.setHeaderText("Clean Playlist");
+		a.setTitle("Clean Build Playlist");
+		a.setHeaderText("Clean Build Playlist");
 		
 		Optional<ButtonType> btn = a.showAndWait();
 		if(btn.isPresent() && btn.get() == ButtonType.OK) {
-			playlistManager.removeNonPlaylistFromDB();
-			Alert f = new Alert(AlertType.INFORMATION);
-			f.setContentText("Finished cleaning playlist");
-			f.setTitle("Clean Playlist");
-			f.setHeaderText("Clean Playlist");
+			plGen.startTask(true);
 		}
 	}
 

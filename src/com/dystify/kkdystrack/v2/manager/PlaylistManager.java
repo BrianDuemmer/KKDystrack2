@@ -124,7 +124,7 @@ public class PlaylistManager extends AbstractManager
 	public void generateOstTree() {
 		// we don't actually need the output, but just to regenerate it, and block until it's finished
 		try { Util.getUrlContents(new URL(ostTreeRegenAddress)); } 
-		catch (IOException e) { log.fatal("Failed to update OST tree"); log.fatal(e); }
+		catch (IOException e) { log.fatal("Failed to update OST tree at " +ostTreeRegenAddress); log.fatal(e); }
 	}
 	
 	
@@ -139,40 +139,28 @@ public class PlaylistManager extends AbstractManager
 	
 	
 	/**
-	 * Checks the playlist root, and determines all the songs that should be in the playlist.
-	 * Any other songs are dropped from the playlist table
+	 * Writes all the songs in {@code allSongs} to the song id temp table. This will create, 
+	 * but not delete, the table
 	 */
-	public void removeNonPlaylistFromDB() {
-		Util.runNewDaemon("Remove Non PLayist From DB", () -> {
-			log.info("Removing non-playlist songs from songlist...");
-			List<File> allSongFiles = SongDAO.getAllSongFiles(new File(playlistRoot.get()));
-			List<Song> allSongs = new LinkedList<>();
-			for(File f : allSongFiles) {
-				
-			}
+	public void writeAllToSongIdTempTable(List<Song> allSongs) {
+		int total = allSongs.size();
+		int numOn = 0;
+		int onNext = 0;
+		while(numOn < total) {
+			// get SIDs to commit this iteration
+			onNext = Math.min(total, numOn + this.songIdTempTblCommitBlockSize);
+			List<Song> songsThisIteration = allSongs.subList(numOn, onNext);
+			List<String> songIDsThisIteration = new LinkedList<>();
+			songsThisIteration.forEach((fil) -> songIDsThisIteration.add(fil.getSongId()));
 			
-			int total = allSongFiles.size();
-			int numOn = 0;
-			int onNext = 0;
-			log.info(String.format("%d songs found in playlist", total));
-			while(numOn < total) {
-				// get SIDs to commit this iteration
-				onNext = Math.min(total, numOn + this.songIdTempTblCommitBlockSize);
-				List<File> filesThisIteration = allSongFiles.subList(numOn, onNext);
-				List<String> songsThisIteration = new LinkedList<>();
-				filesThisIteration.forEach((fil) -> songsThisIteration.add(fil.getAbsolutePath()));
-				
-				this.songDao.writeSongIDsToTempTbl(songsThisIteration, numOn == 0); // only clean on the first iteration
-				log.info(String.format("Wrote songs %d - %d of %d", numOn, onNext, total));
-				numOn = onNext;
-			}
-			
-			// clear the playlist
-			int numDropped = songDao.dropSongsNotInSongIdTempTable();
-			log.info(String.format("Removed %d songs from the playlist", numDropped));
-			
-			songDao.dropSongIdTempTable();
-		});
+			this.songDao.writeSongIDsToTempTbl(songIDsThisIteration, numOn == 0); // only clean on the first iteration
+			log.info(String.format("Wrote songs %d - %d of %d", numOn, onNext, total));
+			numOn = onNext;
+		}
+		
+		// clear the playlist
+		int numDropped = songDao.dropSongsNotInSongIdTempTable();
+		log.info(String.format("Removed %d songs from the playlist", numDropped));
 	}
 
 
