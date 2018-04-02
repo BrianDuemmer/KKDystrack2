@@ -11,6 +11,7 @@ import javafx.stage.Stage;
 /**
  * utility class that allows FXML GUIs like popups to function as 
  * self contained objects without the need of external helping javafx boilerplate.
+ * Controller classes should 
  * @author Duemmer
  *
  */
