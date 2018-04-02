@@ -41,8 +41,7 @@ public abstract class AbstractManager implements ApplicationEventPublisherAware
 			GenericDystrackEvent event = constructor.newInstance(this, true, KKDystrack.APP_NAME, -1, new Date(), description);
 			applicationEventPublisher.publishEvent(event);
 		} catch (Exception e) {
-			log.error("Failed to publish Dystrack event!");
-			log.error(e);
+			log.error("Failed to publish Dystrack event!", e);
 		}
 	}
 

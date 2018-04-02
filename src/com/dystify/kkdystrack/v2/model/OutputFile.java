@@ -56,8 +56,7 @@ public class OutputFile
 				lastUpdate = System.currentTimeMillis();
 				try { Files.write(targetFile, newVal.getBytes()); } 
 				catch (IOException e) {
-					log.error("Error writing to target file \"" +targetFile.toString()+"\"");
-					log.error(e);
+					log.error("Error writing to target file \"" +targetFile.toString()+"\"", e);
 				}
 			}
 		});

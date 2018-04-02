@@ -183,8 +183,7 @@ public class PlaylistGenerator extends AbstractBackgroundTask
 				loadedSongs.add(currSong);
 			} 
 			catch (SongException e) {
-				log.error("Encountered exception loading song from file at \"" +allSongs.get(numOn).getAbsolutePath()+ "\" DETAILS:");
-				log.error(e);
+				log.error("Encountered exception loading song from file at \"" +allSongs.get(numOn).getAbsolutePath()+ "\" DETAILS:", e);
 			}
 		}
 		return loadedSongs;

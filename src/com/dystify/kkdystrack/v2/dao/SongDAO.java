@@ -69,7 +69,7 @@ public class SongDAO
 					throw new SongException("SongRowMapper - Unable to load song information, SongID was not specified!");
 				}
 			} catch (SongException e) {
-				log.error(e);
+				log.error("", e);
 				return null;
 			}
 			

@@ -194,8 +194,7 @@ public class MainWindowController
 				try {
 					songs.add(SongDAO.loadFromFile(f));
 				} catch (SongException e) {
-					log.error("Failed to load Song from file \"" + f.getAbsolutePath() + "\"");
-					log.error(e);
+					log.error("Failed to load Song from file \"" + f.getAbsolutePath() + "\"", e);
 				}
 			});
 
@@ -274,7 +273,7 @@ public class MainWindowController
 				queueManager.dropQueue(toDrop.getQueueId());
 			} catch (QueueNotFoundException e) {
 				new Alert(AlertType.ERROR, "Error Dropping the Queue!").showAndWait();
-				log.error(e);
+				log.error("Error Dropping the Queue!", e);
 			}
 	}
 
@@ -374,7 +373,7 @@ public class MainWindowController
 					ruleDao.dropRule(toRemove); 
 					ruleManager.refreshRuleTableContents();
 					Platform.runLater(() -> { promptForPointCalc(affectedSongs); });
-				} catch (OverrideRuleException e) { log.error(e); }
+				} catch (OverrideRuleException e) { log.error("", e); }
 			});
 		} else {
 			Alert a = new Alert(AlertType.ERROR);
