@@ -46,7 +46,8 @@ public class FoobarCommandLine implements MusicPlayer
 
 	/**
 	 * Designates the task to run that 'simulates' foobar itself. Since there 
-	 * is no way to 
+	 * is no way to actually track it, we must simulate it with a daemon updating
+	 * quickly
 	 */
 	private Runnable updateTask = () -> {
 		double dt = ((double)(System.currentTimeMillis() - lastUpdate)) / 1000;

@@ -444,9 +444,10 @@ public class MainWindowController
 
 	@FXML void foobarPlayStatusBtnPressed(ActionEvent event) {
 		MusicPlayerState state = foobar.playStatusProperty().get();
-		if(state == MusicPlayerState.STOPPED)
+		if(state == MusicPlayerState.STOPPED) {
+			foobar.reset();
 			foobar.startPlayback();
-		else if(state == MusicPlayerState.PLAYING)
+		} else if(state == MusicPlayerState.PLAYING)
 			foobar.pausePlayback();
 		else
 			foobar.playPlayback();
@@ -687,7 +688,7 @@ public class MainWindowController
 			Util.runNewDaemon("Update is_playing", () -> settingsManager.putSetting("is_now_playing", new SettingVal(newVal == MusicPlayerState.PLAYING)));
 		});
 
-		foobar.reset();
+//		foobar.reset();
 	}
 
 
