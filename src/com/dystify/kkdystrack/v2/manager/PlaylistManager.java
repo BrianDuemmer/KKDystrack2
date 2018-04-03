@@ -112,7 +112,7 @@ public class PlaylistManager extends AbstractManager
 					Util.expandTreeView(newRoot);	
 				});
 			} catch (IOException e) {
-				log.error(e);
+				log.error("Exception in fetching OST tree", e);
 			}			
 		});
 	}

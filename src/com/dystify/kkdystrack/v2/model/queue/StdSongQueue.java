@@ -88,7 +88,7 @@ public class StdSongQueue implements SongQueue
 								queueDao.removeFromQueue(queueName, from, to);
 							else if(wasAdded)
 								queueDao.addToQueue(queueName, added, from, false);
-						} catch (QueueNotFoundException e) { log.error(e); }
+						} catch (QueueNotFoundException e) { log.error("No queue backing table found for queue_" +queueName, e); }
 //						Platform.runLater(() -> {
 							queueLengthProp.set(getQueueLength());
 							rngInQueueProp.set(getRngInQueue());
