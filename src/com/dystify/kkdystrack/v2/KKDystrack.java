@@ -1,10 +1,17 @@
 package com.dystify.kkdystrack.v2;
 	
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.io.IoBuilder;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
@@ -53,7 +60,7 @@ public class KKDystrack extends Application
 	
 	
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		System.out.println("Starting app...");
 		try {
 			// Load all the confifg files
@@ -63,6 +70,10 @@ public class KKDystrack extends Application
 			// configure Log4j
 			System.out.println("log4j2 config file: " +log4jConfigLocation.toString());
 			LoggerContext.getContext(false).setConfigLocation(log4jConfigLocation.toURI());
+			
+			// redirect syso / syserr to log4j
+			System.setErr(IoBuilder.forLogger(LogManager.getLogger("System_err")).setLevel(Level.ERROR).buildPrintStream());
+			System.setOut(IoBuilder.forLogger(LogManager.getLogger("System_out")).setLevel(Level.INFO).buildPrintStream());
 			
 		} catch (FileNotFoundException | URISyntaxException e) {
 			System.err.println("Failed to Load core configuration data!");

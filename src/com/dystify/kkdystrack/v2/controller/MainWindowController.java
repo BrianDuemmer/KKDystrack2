@@ -534,6 +534,9 @@ public class MainWindowController
 		doAsserts();
 
 		Util.initLoggers(sysoLogTxtbox, syserrLogTxtbox);
+		
+		System.err.println("err");
+		System.out.println("out");
 
 		// init the tree
 		playlistManager.setOstTree(ostTree);
