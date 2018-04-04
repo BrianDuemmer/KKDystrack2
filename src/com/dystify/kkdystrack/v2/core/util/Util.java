@@ -33,7 +33,7 @@ import javafx.util.Callback;
 public class Util 
 { 	
 	private static Logger log = LogManager.getLogger(Util.class);
-	
+
 	/** if a potential song file does not have these extensions, discount it automatically */
 	public static final String[] legalExtensions =
 		{
@@ -44,12 +44,22 @@ public class Util
 				"ogg",
 				"wav"
 		};
-	
+
+	/**
+	 * if any path element in a potential song directory contains this, reject that directory, as these dirs contain metadata
+	 * which confuses the song loader
+	 */
+	public static final String[] illegalDirectoryContents = 
+		{
+				File.pathSeparator + "__MACOSX",
+				File.pathSeparator + "."
+		};
+
 	public static final ExtensionFilter audioFileExtensionFilter = new ExtensionFilter("Valid Audio Files", legalExtensions);
-	
-	
-	
-	
+
+
+
+
 	/**
 	 * Initializes the application's logging infastructure. In particular, sets up
 	 * the textAreaAppenders, which display log messages to the GUI, and creating the custom log levels
@@ -114,14 +124,14 @@ public class Util
 			ret = String.format("%d:%02d:%02d", hours, minutes, seconds);
 		else
 			ret = String.format("%d:%02d", minutes, seconds);
-		
+
 		if(millis != 0)
 			ret += "."+ String.format("%03d", (int)(millis*1000));
-		
+
 		return ret;
 	}
-	
-	
+
+
 	/**
 	 * Converts an integer number of seconds to a nice textual
 	 * representation: <code>%h:%mm:%ss</code>
@@ -218,10 +228,10 @@ public class Util
 		t.setDaemon(true);
 		t.start();
 	}
-	
-	
-	
-	
+
+
+
+
 	public static void runNewDaemon(Runnable r) {
 		runNewDaemon("", r);
 	}
@@ -303,32 +313,51 @@ public class Util
 		}
 		return seconds;
 	}
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 	/**
 	 * checks if the extension on the song file is a legal sound
 	 * file extension. These are listed in {@link SongUtils#legalExtensions}
 	 */
 	public static boolean isLegalAudioFileExtension(File song)
 	{
-		String ext = song.getName().substring(song.getName().lastIndexOf(".")+1);
-		
-		for(String foo : legalExtensions)
-			if(foo.equalsIgnoreCase(ext))
-				return true;
-		
-		System.out.println("rejected file \"" +song.getName()+ "\"");
+		if(song != null && song.isFile() && song.getName().contains(".")) { // don't even bother checking extensions if it isn't a file, or doesn't have an extension
+			String ext = song.getName().substring(song.getName().lastIndexOf(".")+1);
+
+			for(String foo : legalExtensions)
+				if(foo.equalsIgnoreCase(ext))
+					return true;
+			System.out.println("rejected file \"" +song.getName()+ "\""); // don't log if its a dir either
+		}
 		return false;
 	}
-	
-	
-	
-	
-	
+
+
+	/**
+	 * Checks if the current directory is a legal song directory. It's legal if the File
+	 * object isn't null, it's an existing directory, no parent directories start with an illegal
+	 * directory name
+	 * @param dir
+	 * @return
+	 */
+	public static boolean isLegalSongDirectory(File dir) {
+		if(dir != null && dir.isDirectory()) {
+			for(String s : illegalDirectoryContents)
+				if(dir.getAbsolutePath().contains(s))
+					return false;
+			return true;
+		}
+		return false;
+	}
+
+
+
+
+
 	/**
 	 * Gets the extension of a file, returning it with the '.' excluded
 	 */
@@ -336,9 +365,9 @@ public class Util
 	{
 		return song.getName().substring(song.getName().lastIndexOf('.') + 1);
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Does a simple formatting of a string to convert it to an SQL - safe identifier. In particular, 
 	 * it replaces any continuous sequence of offending characters with underscores, and trims the 
