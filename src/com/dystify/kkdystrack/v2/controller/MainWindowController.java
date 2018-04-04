@@ -38,8 +38,6 @@ import com.dystify.kkdystrack.v2.model.Song;
 import com.dystify.kkdystrack.v2.model.queue.SongQueue;
 import com.dystify.kkdystrack.v2.service.MusicPlayer;
 import com.dystify.kkdystrack.v2.service.MusicPlayerState;
-import com.sun.javafx.image.AlphaType;
-
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
@@ -196,8 +194,7 @@ public class MainWindowController
 				try {
 					songs.add(SongDAO.loadFromFile(f));
 				} catch (SongException e) {
-					log.error("Failed to load Song from file \"" + f.getAbsolutePath() + "\"");
-					log.error(e);
+					log.error("Failed to load Song from file \"" + f.getAbsolutePath() + "\"", e);
 				}
 			});
 
@@ -276,7 +273,7 @@ public class MainWindowController
 				queueManager.dropQueue(toDrop.getQueueId());
 			} catch (QueueNotFoundException e) {
 				new Alert(AlertType.ERROR, "Error Dropping the Queue!").showAndWait();
-				log.error(e);
+				log.error("Error Dropping the Queue!", e);
 			}
 	}
 
@@ -376,7 +373,7 @@ public class MainWindowController
 					ruleDao.dropRule(toRemove); 
 					ruleManager.refreshRuleTableContents();
 					Platform.runLater(() -> { promptForPointCalc(affectedSongs); });
-				} catch (OverrideRuleException e) { log.error(e); }
+				} catch (OverrideRuleException e) { log.error("", e); }
 			});
 		} else {
 			Alert a = new Alert(AlertType.ERROR);
@@ -418,9 +415,21 @@ public class MainWindowController
 		plGen.startTask();
 	}
 	
-	@FXML void cleanPlaylist(ActionEvent event) {
+	/**
+	 * Prompts the user asking if they want to clean the playlist, and if they select yes, launches the
+	 * playlist generator in clean mode
+	 * @param event
+	 */
+	@FXML void cleanBuildPlaylist(ActionEvent event) {
 		Alert a = new Alert(AlertType.CONFIRMATION);
-		a.setContentText("This will reset ALL cooldown and play statistics for songs not ");
+		a.setContentText("This will reset ALL cooldown and play statistics for songs not in the playlist directory! Continue?");
+		a.setTitle("Clean Build Playlist");
+		a.setHeaderText("Clean Build Playlist");
+		
+		Optional<ButtonType> btn = a.showAndWait();
+		if(btn.isPresent() && btn.get() == ButtonType.OK) {
+			plGen.startTask(true);
+		}
 	}
 
 	@FXML void recalcAllPoints(ActionEvent event) {
@@ -534,6 +543,7 @@ public class MainWindowController
 		ostTree.getSelectionModel().selectedItemProperty().addListener((observable, oldVal, newVal) -> {
 			playlistManager.refreshSongList();
 		});
+		playlistManager.setPlaylistRoot(ctlPlaylistRoot.textProperty());
 
 		// prepare the tableViews
 		initQueueTbl();
@@ -816,7 +826,7 @@ public class MainWindowController
 
 
 
-		// format the queue
+		// format the queue for drag and drop and stuff
 		currentQueue.setRowFactory(tbl -> {
 			TableRow<QueueEntry> row = new TableRow<>();
 
@@ -841,7 +851,7 @@ public class MainWindowController
 						event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
 						event.consume();
 					}
-				} catch (NumberFormatException e) { log.error("Bad drag info \"" +db.getString()+ "\""); }
+				} catch (NumberFormatException e) { log.error("Bad drag info \"" +db.getString()+ "\"", e); }
 			});
 
 
@@ -854,19 +864,19 @@ public class MainWindowController
 					int from = Integer.parseInt(db.getString());
 					if(row.getIndex() != from) {
 						int to = row.isEmpty() ? currentQueue.getItems().size() : row.getIndex();
-						QueueEntry dragged = currentQueue.getItems().remove(from); // pop the dragged element from the queue
+						
+						// because we are removing the element before adding it back, gotta decrement the destination index
+						if(to > from)
+							to--;
+						QueueEntry dragged = currentQueue.getItems().remove(from); // fetch the dragged element from the queue
 						currentQueue.getItems().add(to, dragged);
-						//						currentQueue.getItems().remove(from+1);
 						event.consume();
 					}
-				} catch (NumberFormatException e) { log.error("Bad drag info \"" +db.getString()+ "\""); }
+				} catch (NumberFormatException e) { log.error("Bad drag info \"" +db.getString()+ "\"", e); }
 			});
 
 			return row;
 		});
-
-		// configure DnD
-		//		configQueueDragAndDrop();
 	}
 
 

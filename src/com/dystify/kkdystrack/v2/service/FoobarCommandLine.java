@@ -113,8 +113,7 @@ public class FoobarCommandLine implements MusicPlayer
 			log.info(cmdStr);
 			Runtime.getRuntime().exec(cmdStr);
 		} catch (IOException e) {
-			log.error("Failed to execute foobar command \"" +cmdStr+ "\"");
-			log.error(e);
+			log.error("Failed to execute foobar command \"" +cmdStr+ "\"", e);
 		}
 	}
 
@@ -166,8 +165,7 @@ public class FoobarCommandLine implements MusicPlayer
 			s.close();
 			return stdOut.contains("foobar2000.exe");
 		} catch (IOException | InterruptedException e) {
-			log.error("Failed to check foobar running status!");
-			log.error(e);
+			log.error("Failed to check foobar running status!", e);
 		}
 
 		return false;
