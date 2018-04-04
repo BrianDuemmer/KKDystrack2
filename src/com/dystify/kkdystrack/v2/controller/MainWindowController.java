@@ -534,9 +534,6 @@ public class MainWindowController
 		doAsserts();
 
 		Util.initLoggers(sysoLogTxtbox, syserrLogTxtbox);
-		
-		System.err.println("err");
-		System.out.println("out");
 
 		// init the tree
 		playlistManager.setOstTree(ostTree);
@@ -829,7 +826,7 @@ public class MainWindowController
 
 
 
-		// format the queue
+		// format the queue for drag and drop and stuff
 		currentQueue.setRowFactory(tbl -> {
 			TableRow<QueueEntry> row = new TableRow<>();
 
@@ -854,7 +851,7 @@ public class MainWindowController
 						event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
 						event.consume();
 					}
-				} catch (NumberFormatException e) { log.error("Bad drag info \"" +db.getString()+ "\""); }
+				} catch (NumberFormatException e) { log.error("Bad drag info \"" +db.getString()+ "\"", e); }
 			});
 
 
@@ -867,19 +864,19 @@ public class MainWindowController
 					int from = Integer.parseInt(db.getString());
 					if(row.getIndex() != from) {
 						int to = row.isEmpty() ? currentQueue.getItems().size() : row.getIndex();
-						QueueEntry dragged = currentQueue.getItems().remove(from); // pop the dragged element from the queue
+						
+						// because we are removing the element before adding it back, gotta decrement the destination index
+						if(to > from)
+							to--;
+						QueueEntry dragged = currentQueue.getItems().remove(from); // fetch the dragged element from the queue
 						currentQueue.getItems().add(to, dragged);
-						//						currentQueue.getItems().remove(from+1);
 						event.consume();
 					}
-				} catch (NumberFormatException e) { log.error("Bad drag info \"" +db.getString()+ "\""); }
+				} catch (NumberFormatException e) { log.error("Bad drag info \"" +db.getString()+ "\"", e); }
 			});
 
 			return row;
 		});
-
-		// configure DnD
-		//		configQueueDragAndDrop();
 	}
 
 
