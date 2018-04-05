@@ -8,11 +8,12 @@
   </information>
   <resources>
     <j2se version="1.6+" java-vm-args="-Dprops.path=$APPDIR/app/resource/config "  href="http://java.sun.com/products/autodl/j2se"/>
-    <jar href="KKDystrack2.jar" size="118409" download="eager" />
+    <jar href="KKDystrack2.jar" size="120895" download="eager" />
     <jar href="libs\gson-2.6.2.jar" size="229650" download="eager" />
     <jar href="libs\jaudiotagger-2.2.3.jar" size="941715" download="eager" />
     <jar href="libs\log4j-api-2.9.1.jar" size="239856" download="eager" />
     <jar href="libs\log4j-core-2.9.1.jar" size="1549868" download="eager" />
+    <jar href="libs\log4j-iostreams-2.9.1.jar" size="32737" download="eager" />
     <jar href="libs\log4j-jcl-2.9.1.jar" size="12634" download="eager" />
     <jar href="libs\mysql-connector-java-5.1.44-bin.jar" size="999635" download="eager" />
     <jar href="libs\spring-aop-5.0.1.RELEASE.jar" size="360614" download="eager" />

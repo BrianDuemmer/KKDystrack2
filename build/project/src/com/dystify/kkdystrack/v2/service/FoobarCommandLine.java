@@ -46,7 +46,8 @@ public class FoobarCommandLine implements MusicPlayer
 
 	/**
 	 * Designates the task to run that 'simulates' foobar itself. Since there 
-	 * is no way to 
+	 * is no way to actually track it, we must simulate it with a daemon updating
+	 * quickly
 	 */
 	private Runnable updateTask = () -> {
 		double dt = ((double)(System.currentTimeMillis() - lastUpdate)) / 1000;
@@ -110,10 +111,10 @@ public class FoobarCommandLine implements MusicPlayer
 	{
 		String cmdStr = foobarPath +" "+ cmd;
 		try {
+			log.info(cmdStr);
 			Runtime.getRuntime().exec(cmdStr);
 		} catch (IOException e) {
-			log.error("Failed to execute foobar command \"" +cmdStr+ "\"");
-			log.error(e);
+			log.error("Failed to execute foobar command \"" +cmdStr+ "\"", e);
 		}
 	}
 
@@ -165,8 +166,7 @@ public class FoobarCommandLine implements MusicPlayer
 			s.close();
 			return stdOut.contains("foobar2000.exe");
 		} catch (IOException | InterruptedException e) {
-			log.error("Failed to check foobar running status!");
-			log.error(e);
+			log.error("Failed to check foobar running status!", e);
 		}
 
 		return false;

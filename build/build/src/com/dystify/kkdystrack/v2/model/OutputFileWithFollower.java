@@ -36,8 +36,7 @@ public class OutputFileWithFollower extends OutputFile
 					Files.write(targetFile, newVal.getBytes()); 
 				} 
 				catch (IOException e) {
-					log.error("Error writing to target file");
-					log.error(e);
+					log.error("Error writing to target file", e);
 				}
 			}
 		});

@@ -290,7 +290,7 @@ public class QueueManager extends AbstractManager
 				SongQueue activeQueue = queueEntryDao.getQueue(queueId);
 				Platform.runLater(() -> { setActiveQueue(activeQueue); });
 			} catch (QueueNotFoundException e) {
-				log.error(e);
+				log.error("No queue table backing found for queue queue_" +queueId, e);
 			}
 		});
 	}

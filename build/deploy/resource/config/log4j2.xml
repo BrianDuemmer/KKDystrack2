@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Configuration Status="INFO" packages="com.dystify.kkdystrack.v2.core.util" >
 	<Properties>
-		<Property name="guiPattern" value="%d{hh:mm:ss a} [%-5p] - %m%n" />
-		<Property name="filePattern" value="%d{hh:mm:ss.SSS a} [%-5p] [%t]: %m%n" />
+		<Property name="guiPattern" value="%d{hh:mm:ss a} [%-5p] [%logger{1}]: %m%n" />
+		<Property name="filePattern" value="%d{hh:mm:ss.SSS a} [%-5p] [%logger]: %m%n" />
 	</Properties>
 	
 	
@@ -101,8 +101,8 @@
 			<AppenderRef ref="debug_file" level="ALL" />
 			<AppenderRef ref="gui_appender_info" />
 			<AppenderRef ref="gui_appender_error" />
-			<AppenderRef ref="std_out" />
-			<AppenderRef ref="std_err" />
+			<!-- <AppenderRef ref="std_out" />
+			<AppenderRef ref="std_err" /> -->
 		</Root>
 	</Loggers>
 	
