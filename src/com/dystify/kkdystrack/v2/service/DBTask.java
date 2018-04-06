@@ -20,7 +20,7 @@ import org.apache.logging.log4j.Logger;
  * @author Duemmer
  *
  */
-public class DBTask implements Callable<Void> 
+public class DBTask implements Runnable 
 {
 	private boolean async;
 	private String taskName;
@@ -36,7 +36,7 @@ public class DBTask implements Callable<Void>
 	 * @param taskName the name of this task
 	 * @param task the task code that will run. Note that exceptions need not be checked in this task.
 	 */
-	public DBTask(String taskName, Callable<Void> taskBase) {
+	public DBTask(String taskName, ThrowingRunnable taskBase) {
 		this(false, taskName, taskBase);
 	}
 
@@ -50,7 +50,7 @@ public class DBTask implements Callable<Void>
 	 * @param taskName the name of this task
 	 * @param task the task code that will run. Note that exceptions need not be checked in this task.
 	 */
-	public DBTask(boolean async, String taskName, Callable<Void> taskBase) {
+	public DBTask(boolean async, String taskName, ThrowingRunnable taskBase) {
 		this.async = async;
 		this.taskName = taskName;
 		this.timeQueued = System.currentTimeMillis(); // default to time constructed
@@ -61,7 +61,7 @@ public class DBTask implements Callable<Void>
 			double timeScheduled = ((double)(start - timeQueued)) / 1000;
 			log.debug(String.format("Starting task \"%s\" after being scheduled for %.3fs, async=%b", taskName, timeScheduled, async));
 			
-			try { taskBase.call(); } catch (Exception e) { 
+			try { taskBase.run(); } catch (Exception e) { 
 				log.error("Task \"" +taskName+ "\" failed with exception", e); 
 			}
 			
@@ -73,7 +73,7 @@ public class DBTask implements Callable<Void>
 
 
 
-	@Override public Void call() {	
+	@Override public void run() {	
 		if(!async) { // run normal
 			task.run();
 		} else { // just throw it in a thread and run with it
@@ -82,7 +82,6 @@ public class DBTask implements Callable<Void>
 			t.setName("Task " +taskName);
 			t.start();
 		}
-		return null;
 	}
 	
 	
