@@ -3,6 +3,7 @@ package com.dystify.kkdystrack.v2.manager;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,6 +21,7 @@ import com.dystify.kkdystrack.v2.model.queue.EmptySongQueue;
 import com.dystify.kkdystrack.v2.model.queue.SimpleRandomSongQueue;
 import com.dystify.kkdystrack.v2.model.queue.SongQueue;
 import com.dystify.kkdystrack.v2.model.queue.StdSongQueue;
+import com.dystify.kkdystrack.v2.service.DBTask;
 
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
@@ -47,6 +49,7 @@ import javafx.scene.control.ToggleGroup;
 public class QueueManager extends AbstractManager
 {
 	private Logger log = LogManager.getLogger(getClass());
+	private ExecutorService dbTaskQueue;
 	
 	@Autowired private ViewerManager viewerManager;
 
@@ -179,7 +182,7 @@ public class QueueManager extends AbstractManager
 	 * to the {@code activeQueueMenu}
 	 */
 	public void refreshQueueMenu() {
-		Util.runNewDaemon("Refresh Queue Menu", () -> {
+		dbTaskQueue.submit(new DBTask("Refresh Queue Menu", () -> {
 			allQueueIDs = queueEntryDao.getAllQueueIDsWithNames();
 			Platform.runLater(() -> {
 				int menuSize = activeQueueMenu.getItems().size();
@@ -225,7 +228,7 @@ public class QueueManager extends AbstractManager
 				} else
 					throw new RuntimeException("Missing key items in Active Queue Menu!");
 			});
-		});
+		}));
 	}
 	
 	
@@ -285,20 +288,17 @@ public class QueueManager extends AbstractManager
 	 * @param queueName
 	 */
 	public void setActiveQueue(String queueId) {
-		Util.runNewDaemon("Set Active Queue", () -> {
-			try {
-				SongQueue activeQueue = queueEntryDao.getQueue(queueId);
-				Platform.runLater(() -> { setActiveQueue(activeQueue); });
-			} catch (QueueNotFoundException e) {
-				log.error("No queue table backing found for queue queue_" +queueId, e);
-			}
-		});
+		dbTaskQueue.submit(new DBTask("Set Active Queue", () -> {
+			SongQueue activeQueue = queueEntryDao.getQueue(queueId);
+			Platform.runLater(() -> { setActiveQueue(activeQueue); });
+		}));
 	}
 	
 	
 	
 	public void clearCurrentQueue() throws QueueNotFoundException {
 		queueEntryDao.clearQueue(activeQueue.get().getQueueId());
+		queueTbl.getItems().clear();
 	}
 	
 	
@@ -355,6 +355,12 @@ public class QueueManager extends AbstractManager
 
 	public ReadOnlyStringProperty queueNameProp() {
 		return queueNameProp.getReadOnlyProperty();
+	}
+
+
+
+	public void setDbTaskQueue(ExecutorService dbTaskQueue) {
+		this.dbTaskQueue = dbTaskQueue;
 	}
 
 }

@@ -1,6 +1,8 @@
 package com.dystify.kkdystrack.v2.model.queue;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,6 +12,7 @@ import com.dystify.kkdystrack.v2.core.util.Util;
 import com.dystify.kkdystrack.v2.dao.QueueDAO;
 import com.dystify.kkdystrack.v2.manager.ViewerManager;
 import com.dystify.kkdystrack.v2.model.QueueEntry;
+import com.dystify.kkdystrack.v2.service.DBTask;
 
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyDoubleProperty;
@@ -38,6 +41,7 @@ public class StdSongQueue implements SongQueue
 	private String queueDispName;
 	private boolean deleteOnEmpty;
 	private QueueDAO queueDao;
+	private ExecutorService dbTaskQueue;
 	
 	private ReadOnlyIntegerWrapper queueSizeProp = new ReadOnlyIntegerWrapper(0);
 	private ReadOnlyDoubleWrapper queueLengthProp = new ReadOnlyDoubleWrapper(0);
@@ -60,7 +64,10 @@ public class StdSongQueue implements SongQueue
 		queue.addListener((ListChangeListener.Change<? extends QueueEntry> c) -> {
 			while(c.next()) {
 				// it's very dirty but since we expect only QueueEntries we should be fine
-				final List<QueueEntry> added = (List<QueueEntry>)(List<?>) c.getAddedSubList();
+				final List<QueueEntry> added = (
+						(List<QueueEntry>)(List<?>) c.getAddedSubList()
+					).stream().collect(Collectors.toList());
+				
 				final int from = c.getFrom();
 				final int to = c.getTo();
 				final boolean wasPermutated = c.wasPermutated();
@@ -77,7 +84,7 @@ public class StdSongQueue implements SongQueue
 				// database penalties, they have to run in a different thread. These
 				// threads must also be guaranteed to run in a FIFO, sequential style,
 				// so put them in shared synchronized blocks
-//				Util.runNewDaemon("queue_" +queueName+" update", () -> {
+				dbTaskQueue.submit(new DBTask("queue_" +queueName+" update", () -> {
 					synchronized (updateLock) {
 						try {
 							if(wasPermutated) 
@@ -89,13 +96,13 @@ public class StdSongQueue implements SongQueue
 							else if(wasAdded)
 								queueDao.addToQueue(queueName, added, from, false);
 						} catch (QueueNotFoundException e) { log.error("No queue backing table found for queue_" +queueName, e); }
-//						Platform.runLater(() -> {
+						Platform.runLater(() -> {
 							queueLengthProp.set(getQueueLength());
 							rngInQueueProp.set(getRngInQueue());
 							queueSizeProp.set(queue.size());
-//						});
+						});
 					}
-//				});
+				}));
 			}
 		});
 	}
@@ -207,5 +214,10 @@ public class StdSongQueue implements SongQueue
 
 	public String getQueueDispName() {
 		return queueDispName;
+	}
+
+
+	public void setDbTaskQueue(ExecutorService dbTaskQueue) {
+		this.dbTaskQueue = dbTaskQueue;
 	}
 }

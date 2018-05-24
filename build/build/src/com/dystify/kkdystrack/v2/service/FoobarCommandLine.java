@@ -1,5 +1,6 @@
 package com.dystify.kkdystrack.v2.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -25,6 +26,8 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 
 public class FoobarCommandLine implements MusicPlayer 
 {
+	private int ttlStart;
+
 	private Logger log = LogManager.getLogger(this.getClass());
 
 	private String foobarPath;
@@ -133,16 +136,35 @@ public class FoobarCommandLine implements MusicPlayer
 
 
 	/**
-	 * pops the next song, updates the total time remaining, and adds it to foobar's queue, as well as triggering 
-	 * the nowPlaying property
+	 * pops the next song, checks if it can be read. 
+	 * If so, updates the total time remaining, and adds 
+	 * it to foobar's queue, as well as triggering the nowPlaying property.
+	 * If not, reports an error, decreases {@code ttl}, 
+	 * and goes to the next one. If {@code ttl} <= 0, just reports an error and 
+	 * breaks out
 	 */
-	private void addNextSongToQueue() {
+	private void addNextSongToQueue(int ttl) {
 		QueueEntry added = popNextSong();
-		queueTime.set(queueTime.get() + added.getSong().getSongLength());
-		foobarQueue.add(added);
-		log.info("Set now Playing:" + added.getSong().getDispText(false));
-		nowPlaying.setValue(added);
-		addToFoobarQueue(added);
+		String songId = added.getSong().getSongId();
+		if(new File(songId).exists()) {
+			queueTime.set(queueTime.get() + added.getSong().getSongLength());
+			foobarQueue.add(added);
+			log.info("Set now Playing:" + added.getSong().getDispText(false));
+			nowPlaying.setValue(added);
+			addToFoobarQueue(added);
+		} else {
+			log.error("Song \"" +songId+ "\" was not found! Skipping...");
+			if(ttl > 0)
+				addNextSongToQueue(ttl-1);
+			else
+				log.fatal("TTL expired for skips! Is the playlist broken?");
+		}
+	}
+	
+	
+	
+	private void addNextSongToQueue() {
+		addNextSongToQueue(ttlStart);
 	}
 
 
@@ -320,6 +342,14 @@ public class FoobarCommandLine implements MusicPlayer
 
 	@Override public void setQueueEmptyCallback(QueueEmptyCallback queueEmptyCallback) {
 		this.queueEmptyCallback = queueEmptyCallback;
+	}
+
+
+
+
+
+	public void setTtlStart(int ttlStart) {
+		this.ttlStart = ttlStart;
 	}
 
 }

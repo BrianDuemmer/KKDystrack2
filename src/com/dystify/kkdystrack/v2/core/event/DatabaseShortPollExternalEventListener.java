@@ -10,6 +10,7 @@ import javax.annotation.PostConstruct;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import com.dystify.kkdystrack.v2.core.event.types.GenericDystrackEvent;
@@ -24,20 +25,20 @@ public class DatabaseShortPollExternalEventListener implements ExternalEventList
 	private ApplicationEventPublisher applicationEventPublisher;
 	private EventDAO eventDao;
 	private Logger log = LogManager.getLogger(getClass());
-	
+
 	private int lastRegisteredEventID;
-	
-	
-	
+
+
+
 	public DatabaseShortPollExternalEventListener() {}
-	
-	
+
+
 	@PostConstruct public void init() {
 		// set to the current max id, we don't care about events before startup
 		lastRegisteredEventID = eventDao.verifyValidMinEventID(-2);
 	}
-	
-	
+
+
 	/**
 	 * periodically gets called to poll the database for new event occurrences
 	 */
@@ -45,20 +46,24 @@ public class DatabaseShortPollExternalEventListener implements ExternalEventList
 	@Scheduled(fixedRate=5000)
 	public void checkForNewEvents()
 	{
-		log.trace("Querying Database for events...");
-		// read all the new events
-		List<GenericDystrackEvent> events = eventDao.getAllNewerThan(eventDao.verifyValidMinEventID(lastRegisteredEventID));
-		for(GenericDystrackEvent event : events) {
-			log.info("Recieved event \"" +event+ "\"");
-			applicationEventPublisher.publishEvent(event);
-			
-			// increase the event ID counter as needed
-			lastRegisteredEventID = Math.max(lastRegisteredEventID, event.getEventId());
+		try {
+			log.trace("Querying Database for events...");
+			// read all the new events
+			List<GenericDystrackEvent> events = eventDao.getAllNewerThan(eventDao.verifyValidMinEventID(lastRegisteredEventID));
+			for(GenericDystrackEvent event : events) {
+				log.info("Recieved event \"" +event+ "\"");
+				applicationEventPublisher.publishEvent(event);
+
+				// increase the event ID counter as needed
+				lastRegisteredEventID = Math.max(lastRegisteredEventID, event.getEventId());
+			}
+		} catch (CannotGetJdbcConnectionException e) {
+			log.error("Failed to aquire database connection for event listener!");
 		}
 	}
 
-	
-	
+
+
 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {

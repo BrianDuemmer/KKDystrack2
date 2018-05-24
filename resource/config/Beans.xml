@@ -28,7 +28,8 @@
 		<constructor-arg ref="dystifyDB" />
 	</bean>
 
-
+	<bean id="dbTaskQueue" class="com.dystify.kkdystrack.v2.core.util.Util" 
+		factory-method="getDbTaskQueue" />
 
 
 	<!-- GUI Beans -->
@@ -38,6 +39,7 @@
 		<property name="foobar" ref="commandLineFoobar"/>
 		<property name="songDao" ref="songDao" />
 		<property name="ruleDao" ref="overrideRuleDao" />
+		<property name="dbTaskQueue" ref="dbTaskQueue" />
 	</bean>
 	
 	<bean id="addOverrideRuleController" class = "com.dystify.kkdystrack.v2.controller.AddOverrideRuleController" >
@@ -87,23 +89,28 @@
 		<property name="songDao" ref="songDao"/>
 		<property name="songIdTempTblCommitBlockSize" value="${playlist.songIdTempTblCommitBlockSize}" />
 		<property name="ostTreeRegenAddress" value="${playlist.osttreeregen}" />
+		<property name="dbTaskQueue" ref="dbTaskQueue"></property>
 	</bean>
 	
 	<bean id="queueManager" class="com.dystify.kkdystrack.v2.manager.QueueManager">
 		<property name="queueEntryDao" ref="queueEntryDao" />
 		<property name="randomQueue" ref="simpleRandomSongQueue" />
+		<property name="dbTaskQueue" ref="dbTaskQueue"></property>
 	</bean>
 	
 	<bean id="overrideRuleManager" class="com.dystify.kkdystrack.v2.manager.OverrideRuleManager">
 		<property name="ruleDao" ref = "overrideRuleDao" />
+		<property name="dbTaskQueue" ref="dbTaskQueue"></property>
 	</bean>
 	
 	<bean id="settingsManager" class="com.dystify.kkdystrack.v2.manager.SettingsManager">
 		<property name="settingsDao" ref="settingsDao" />
+		<property name="dbTaskQueue" ref="dbTaskQueue" />
 	</bean>
 	
 	<bean id="historyManager" class="com.dystify.kkdystrack.v2.manager.HistoryManager">
 		<constructor-arg ref="queueEntryDao" />
+		<property name="dbTaskQueue" ref="dbTaskQueue"></property>
 	</bean>
 	
 	<bean id="viewerManager" class="com.dystify.kkdystrack.v2.manager.ViewerManager">
@@ -120,6 +127,7 @@
 	<bean id="simpleRandomSongQueue" class="com.dystify.kkdystrack.v2.model.queue.SimpleRandomSongQueue">
 		<constructor-arg ref="queueEntryDao" />
 		<constructor-arg type="int" value="${queue.simplerandom.poolsize}" />
+		<property name="dbTaskQueue" ref="dbTaskQueue"></property>
 	</bean>
 	
 	
@@ -130,6 +138,7 @@
 		<constructor-arg value="${foobar.path}"/>
 		<property name="foobarRestartTime" value="${foobar.resettime}" />
 		<property name="queueEmptyCallback" ref="simpleRandomQueueEmptyCallback" />
+		<property name="ttlStart" value="${foobar.ttlstart}" />
 	</bean>
 	
 	<bean id="simpleRandomQueueEmptyCallback" class="com.dystify.kkdystrack.v2.service.SimpleRandomQueueEmptyCallback">
@@ -152,6 +161,7 @@
 	
 	<bean id="queueEntryDao" class="com.dystify.kkdystrack.v2.dao.QueueDAO">
 		<constructor-arg ref="namedParameterJdbcTemplate" />
+		<property name="dbTaskQueue" ref="dbTaskQueue"></property>
 	</bean>
 	
 	<bean id="songDao" class="com.dystify.kkdystrack.v2.dao.SongDAO">

@@ -12,6 +12,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -380,6 +382,13 @@ public class Util
 		String ret = toClean.replaceAll(regex, "_");
 		if(ret.length() > 50)
 			ret = ret.substring(0, 50);
+		return ret;
+	}
+	
+	
+	
+	public static ExecutorService getDbTaskQueue() {
+		ExecutorService ret = Executors.newSingleThreadExecutor();
 		return ret;
 	}
 }

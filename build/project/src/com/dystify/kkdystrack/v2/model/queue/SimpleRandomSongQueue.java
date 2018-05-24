@@ -1,10 +1,14 @@
 package com.dystify.kkdystrack.v2.model.queue;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+
+import javax.annotation.PostConstruct;
 
 import com.dystify.kkdystrack.v2.core.util.Util;
 import com.dystify.kkdystrack.v2.dao.QueueDAO;
 import com.dystify.kkdystrack.v2.model.QueueEntry;
+import com.dystify.kkdystrack.v2.service.DBTask;
 
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyDoubleProperty;
@@ -29,6 +33,8 @@ public class SimpleRandomSongQueue implements SongQueue
 	private QueueDAO queueDao;
 	private int poolSize;
 	
+	private ExecutorService dbTaskQueue;
+	
 	private ReadOnlyIntegerWrapper queueSizeProp = new ReadOnlyIntegerWrapper(0);
 	private ReadOnlyDoubleWrapper queueLengthProp = new ReadOnlyDoubleWrapper(0);
 	private ReadOnlyDoubleWrapper rngInQueueProp = new ReadOnlyDoubleWrapper(1);
@@ -47,9 +53,6 @@ public class SimpleRandomSongQueue implements SongQueue
 			queueSizeProp.set(c.getList().size());
 			queueLengthProp.set(getQueueLength());
 		});
-		
-		// Add some songs to start off
-		addSongs(poolSize);
 	}
 	
 	
@@ -61,12 +64,20 @@ public class SimpleRandomSongQueue implements SongQueue
 	 * @param numSongs
 	 */
 	private void addSongs(int numSongs) {
-		Util.runNewDaemon(() -> { 
+		dbTaskQueue.submit(new DBTask(true, "Add Songs to Queue \"" +QUEUE_NAME+ "\"", () -> { 
 			List<QueueEntry> added = queueDao.getSimpleRandomQueueEntries(numSongs); 
 			Platform.runLater(() -> { 
 				queue.addAll(added); 
 			});
-		});
+		}));
+	}
+	
+	
+	
+	@PostConstruct
+	private void initQueue() {
+		// Add some songs to start off
+		addSongs(poolSize);
 	}
 	
 	
@@ -141,6 +152,14 @@ public class SimpleRandomSongQueue implements SongQueue
 
 	@Override public String getQueueDispName() {
 		return QUEUE_NAME;
+	}
+
+
+
+
+
+	public void setDbTaskQueue(ExecutorService dbTaskQueue) {
+		this.dbTaskQueue = dbTaskQueue;
 	}
 }
 

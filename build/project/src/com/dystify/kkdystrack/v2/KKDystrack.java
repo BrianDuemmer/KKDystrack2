@@ -1,10 +1,6 @@
 package com.dystify.kkdystrack.v2;
 	
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 
@@ -72,8 +68,8 @@ public class KKDystrack extends Application
 			LoggerContext.getContext(false).setConfigLocation(log4jConfigLocation.toURI());
 			
 			// redirect syso / syserr to log4j
-			System.setErr(IoBuilder.forLogger(LogManager.getLogger("System_err")).setLevel(Level.ERROR).buildPrintStream());
-			System.setOut(IoBuilder.forLogger(LogManager.getLogger("System_out")).setLevel(Level.INFO).buildPrintStream());
+//			System.setErr(IoBuilder.forLogger(LogManager.getLogger("System_err")).setLevel(Level.ERROR).buildPrintStream());
+//			System.setOut(IoBuilder.forLogger(LogManager.getLogger("System_out")).setLevel(Level.INFO).buildPrintStream());
 			
 		} catch (FileNotFoundException | URISyntaxException e) {
 			System.err.println("Failed to Load core configuration data!");

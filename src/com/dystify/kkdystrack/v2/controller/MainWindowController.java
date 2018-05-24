@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.prefs.Preferences;
 
 import javax.annotation.PostConstruct;
@@ -36,6 +37,7 @@ import com.dystify.kkdystrack.v2.model.QueueEntry;
 import com.dystify.kkdystrack.v2.model.SettingVal;
 import com.dystify.kkdystrack.v2.model.Song;
 import com.dystify.kkdystrack.v2.model.queue.SongQueue;
+import com.dystify.kkdystrack.v2.service.DBTask;
 import com.dystify.kkdystrack.v2.service.MusicPlayer;
 import com.dystify.kkdystrack.v2.service.MusicPlayerState;
 import javafx.application.Platform;
@@ -153,6 +155,7 @@ public class MainWindowController
 	private MusicPlayer foobar;
 	private SongDAO songDao;
 	private OverrideRuleDAO ruleDao;
+	private ExecutorService dbTaskQueue;
 
 	@Autowired private Preferences prefs;
 	@Autowired private AddOverrideRuleController addOverrideRuleController;
@@ -218,17 +221,17 @@ public class MainWindowController
 	 * @param event
 	 */
 	@FXML void addSongRandom(ActionEvent event) {
-//		Util.runNewDaemon("Add Random Song", () -> {
+		dbTaskQueue.submit(new DBTask("Add Random Song", () -> {
 			boolean added = queueManager.addRandomSongsToQueue(1);
 			if (!added) {
-//				Platform.runLater(() -> {
+				Platform.runLater(() -> {
 					Alert a = new Alert(AlertType.ERROR,
 							"Must select a queue to add to in the `Active Queue` menu!");
 					a.setTitle("Failed to add song to queue");
 					a.showAndWait();
-//				});
-//		});
+				});
 			}
+		}));
 	}
 	
 	
@@ -239,16 +242,9 @@ public class MainWindowController
 		a.setContentText("Really delete contents of Queue \"" +queueManager.getActiveQueue().getQueueDispName()+ "\"?");
 		Optional<ButtonType> b = a.showAndWait();
 		if(b.isPresent() && b.get() == ButtonType.OK) {
-//			try {
-//				queueManager.clearCurrentQueue();
-				queueManager.activeQueueProperty().get().getQueue().clear();
-//			} catch (QueueNotFoundException e) {
-//				String errTxt = "Queue \"" +queueManager.getActiveQueue().getQueueDispName()+ "\" not found in database!";
-//				log.error(errTxt);
-//				Alert err = new Alert(AlertType.ERROR);
-//				err.setContentText(errTxt);
-//				err.showAndWait();
-//			}
+			dbTaskQueue.submit(new DBTask("Empty Queue \"queue_" +queueManager.getActiveQueue().getQueueDispName()+ "\"", () -> {
+				queueManager.clearCurrentQueue();
+			}));
 		}
 	}
 
@@ -258,7 +254,10 @@ public class MainWindowController
 	@FXML void currentQueue_removeSong(ActionEvent event) {
 		int selected = currentQueue.getSelectionModel().getSelectedIndex();
 		if(selected >= 0 && queueManager.activeQueueProperty().get() != null) { // don't try to delete if a queueEntry isn't selected
-			currentQueue.getItems().remove(selected);
+			dbTaskQueue.submit(new DBTask("Remove song from \"queue_" +queueManager.getActiveQueue().getQueueDispName()+ "\"", () -> {
+//				log.info("FOOOOOOOO");
+				currentQueue.getItems().remove(selected);
+			}));
 		}
 	}
 
@@ -266,8 +265,8 @@ public class MainWindowController
 		SongQueue toDrop = queueManager.getActiveQueue();
 		Alert a = new Alert(AlertType.CONFIRMATION);
 		a.setContentText(String.format("Really delete queue \"%s\"?", toDrop.getQueueDispName()));
-		//		a.setTitle("Drop Queue");
-		//		a.setHeaderText("Drop Queue");
+		a.setTitle("Drop Queue");
+		a.setHeaderText("Drop Queue");
 		if(a.showAndWait().get() == ButtonType.OK)
 			try {
 				queueManager.dropQueue(toDrop.getQueueId());
@@ -496,7 +495,7 @@ public class MainWindowController
 		m.put("stream_lag", new SettingVal(Double.parseDouble(ctlStreamLag.getText())));
 		m.put("request_mode", new SettingVal(ctlRequestMode.getSelectionModel().getSelectedItem()));
 
-
+		settingsManager.getSettings().clear();
 		settingsManager.getSettings().putAll(m);
 		settingsManager.writeSettings();
 	}
@@ -1094,6 +1093,9 @@ public class MainWindowController
 	}
 	public void setPropertyManager(PropertyManager propertyManager) {
 		this.propertyManager = propertyManager;
+	}
+	public void setDbTaskQueue(ExecutorService dbTaskQueue) {
+		this.dbTaskQueue = dbTaskQueue;
 	}
 }
 

@@ -1,7 +1,7 @@
 ;This file will be executed next to the application bundle image
 ;I.e. current directory will contain folder KKDystrack-Core with application files
 
-#define VERSION "0.9.6"
+#define VERSION "0.9.7"
 
 [Setup]
 AppId={{fxApplication}}

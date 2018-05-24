@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 	<project name="KKDystrack2" default="do-deploy" basedir="."  xmlns:fx="javafx:com.sun.javafx.tools.ant">
-	<property name="version" value="0.9.6"/>
+	<property name="version" value="0.9.7"/>
 
 	<target name="init-fx-tasks">
 		<path id="fxant">

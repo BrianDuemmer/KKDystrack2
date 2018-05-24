@@ -2,13 +2,16 @@ package com.dystify.kkdystrack.v2.manager;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 import org.springframework.context.event.EventListener;
 
 import com.dystify.kkdystrack.v2.core.event.types.SettingsUpdatedEvent;
 import com.dystify.kkdystrack.v2.dao.SettingsDAO;
 import com.dystify.kkdystrack.v2.model.SettingVal;
+import com.dystify.kkdystrack.v2.service.DBTask;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.util.Callback;
@@ -18,6 +21,7 @@ public class SettingsManager extends AbstractManager
 	private SettingsDAO settingsDao;
 	private ObservableMap<String, SettingVal> settings;
 	private Callback<Map<String, SettingVal>, Void> onDBUpdated;
+	private ExecutorService dbTaskQueue;
 	
 	public SettingsManager() {
 		settings = FXCollections.observableHashMap();
@@ -29,7 +33,9 @@ public class SettingsManager extends AbstractManager
 	 * Writes the current settings out to the database
 	 */
 	public void writeSettings() {
-		settingsDao.putSettings(settings);
+		dbTaskQueue.submit(new DBTask("Write Settings", () -> {
+			settingsDao.putSettings(settings);
+		}));
 	}
 	
 	
@@ -48,9 +54,11 @@ public class SettingsManager extends AbstractManager
 	 * @param value
 	 */
 	public void putSetting(String key, SettingVal value) {
-		Map<String, SettingVal> m = new HashMap<>(1);
-		m.put(key, value);
-		settingsDao.putSettings(m);
+		dbTaskQueue.submit(new DBTask("Put Setting", () -> {
+			Map<String, SettingVal> m = new HashMap<>(1);
+			m.put(key, value);
+			settingsDao.putSettings(m);
+		}));
 	}
 	
 	
@@ -75,9 +83,13 @@ public class SettingsManager extends AbstractManager
 	
 	
 	public void readSettings() {
-		settings.putAll(settingsDao.getAllSettings());
-		if(onDBUpdated != null)
-			onDBUpdated.call(settings);
+		dbTaskQueue.submit(new DBTask("Read Settings", () -> {
+			settings.putAll(settingsDao.getAllSettings());
+			Platform.runLater(() -> {
+				if(onDBUpdated != null)
+					onDBUpdated.call(settings);
+			});
+		}));
 	}
 	
 	
@@ -93,5 +105,10 @@ public class SettingsManager extends AbstractManager
 
 	public void setOnDBUpdated(Callback<Map<String, SettingVal>, Void> onDBUpdated) {
 		this.onDBUpdated = onDBUpdated;
+	}
+
+
+	public void setDbTaskQueue(ExecutorService dbTaskQueue) {
+		this.dbTaskQueue = dbTaskQueue;
 	}
 }

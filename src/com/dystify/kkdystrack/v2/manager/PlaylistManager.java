@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,6 +19,7 @@ import com.dystify.kkdystrack.v2.core.util.Util;
 import com.dystify.kkdystrack.v2.dao.SongDAO;
 import com.dystify.kkdystrack.v2.model.OST;
 import com.dystify.kkdystrack.v2.model.Song;
+import com.dystify.kkdystrack.v2.service.DBTask;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
@@ -30,6 +32,7 @@ import javafx.scene.control.TreeView;
 public class PlaylistManager extends AbstractManager
 {
 	private SongDAO songDao;
+	private ExecutorService dbTaskQueue;
 	private TreeView<OST> ostTree;
 	private ObservableList<Song> playlistContents;
 	private String ostTreeLocation;
@@ -172,10 +175,10 @@ public class PlaylistManager extends AbstractManager
 	 */
 	public void refreshSongList() {
 		OST ost = ostTree.getSelectionModel().getSelectedItem().getValue();
-		Util.runNewDaemon("SongList Refresh", () -> {
+		dbTaskQueue.submit(new DBTask("SongList Refresh", () -> {
 			List<Song> songs = songDao.getAllFromOST(ost);
 			Platform.runLater(() -> { playlistContents.setAll(songs); });
-		});
+		}));
 	}
 
 
@@ -217,6 +220,11 @@ public class PlaylistManager extends AbstractManager
 
 	public void setOstTreeRegenAddress(String ostTreeRegenAddress) {
 		this.ostTreeRegenAddress = ostTreeRegenAddress;
+	}
+
+
+	public void setDbTaskQueue(ExecutorService dbTaskQueue) {
+		this.dbTaskQueue = dbTaskQueue;
 	}
 
 }

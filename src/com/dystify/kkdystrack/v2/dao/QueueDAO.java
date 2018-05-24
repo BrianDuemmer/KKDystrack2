@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,6 +32,8 @@ public class QueueDAO
 {
 	private NamedParameterJdbcTemplate jdbcTemplate;
 	private Logger log = LogManager.getLogger(getClass());
+	
+	private ExecutorService dbTaskQueue;
 
 
 	public static class QueueEntryRowMapper implements RowMapper<QueueEntry>
@@ -317,7 +320,9 @@ public class QueueDAO
 			// right now just fetch the name arbitrarily. However, this is very slow, and leads to significant delays in loading the queue, so be sure to replace eventually
 			String name = (String) jdbcTemplate.queryForMap("SELECT queue_name FROM queues WHERE queue_id=:id", new MapSqlParameterSource("id", id)).get("queue_name");
 			
-			return new StdSongQueue(id, name, FXCollections.observableArrayList(entries), this);
+			StdSongQueue queue = new StdSongQueue(id, name, FXCollections.observableArrayList(entries), this);
+			queue.setDbTaskQueue(dbTaskQueue);
+			return queue;
 		}
 		catch(DataAccessException e) {
 			if(isTblNotFoundErr(e))
@@ -627,6 +632,13 @@ public class QueueDAO
 	 */
 	private boolean isTblNotFoundErr(DataAccessException e) {
 		return e./*getRootCause().*/getMessage().toLowerCase().matches("table .* doesn't exist");
+	}
+
+
+
+
+	public void setDbTaskQueue(ExecutorService dbTaskQueue) {
+		this.dbTaskQueue = dbTaskQueue;
 	}
 
 
