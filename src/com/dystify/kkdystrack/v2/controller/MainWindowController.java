@@ -464,8 +464,16 @@ public class MainWindowController
 	}
 
 	@FXML void recalcAllPoints(ActionEvent event) {
-		pointCalc.setSongstoCalc(songDao.getAllSongs());
-		pointCalc.startTask();
+		Alert a = new Alert(AlertType.INFORMATION);
+		a.setContentText("Preparing to calculate all song points...");
+		a.show();
+		Util.runNewDaemon("Recalc All Points Launcher", () -> {
+			pointCalc.setSongstoCalc(songDao.getAllSongs());
+			Platform.runLater(() -> {
+				a.hide();
+				pointCalc.startTask();
+				});
+		});
 	}
 
 	@FXML void resetFoobar(ActionEvent event) {
@@ -512,7 +520,7 @@ public class MainWindowController
 		setParamBtnsEnabled(false);
 
 		// write PlaylistRoot seperately
-		prefs.put("playlist_root", inst_lastPlaylistRootVal);
+		prefs.put("playlist_root", ctlPlaylistRoot.getText());
 
 		// convenience copy 
 		Map<String, SettingVal> m = new HashMap<>();
@@ -575,7 +583,10 @@ public class MainWindowController
 		ostTree.getSelectionModel().selectedItemProperty().addListener((observable, oldVal, newVal) -> {
 			playlistManager.refreshSongList();
 		});
-		playlistManager.setPlaylistRoot(ctlPlaylistRoot.textProperty());
+		
+//		inst_lastPlaylistRootVal = prefs.get("playlist_root", "");
+//		ctlPlaylistRoot.setText(inst_lastPlaylistRootVal);
+//		playlistManager.setPlaylistRoot(ctlPlaylistRoot.textProperty());
 
 		// prepare the tableViews
 		initQueueTbl();
