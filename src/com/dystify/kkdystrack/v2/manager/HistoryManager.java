@@ -22,7 +22,7 @@ import javafx.beans.property.SimpleObjectProperty;
 public class HistoryManager extends AbstractManager 
 {
 	private QueueDAO queueDao;
-	private SongDAO songDao;
+	private SongDAO songDao; 
 	private ObjectProperty<QueueEntry> nowPlayingProperty;
 	private boolean ignoreHistory;
 	private ExecutorService dbTaskQueue;
