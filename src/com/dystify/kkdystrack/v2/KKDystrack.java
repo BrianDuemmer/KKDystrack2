@@ -4,10 +4,10 @@ import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
+//import org.apache.logging.log4j.Level;
+//import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.io.IoBuilder;
+//import org.apache.logging.log4j.io.IoBuilder;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 

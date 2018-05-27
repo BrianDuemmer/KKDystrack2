@@ -102,33 +102,33 @@ public class SongDAO
 				"	MAX(h.time_played) AS last_play,\r\n" + 
 				"	COUNT(h.time_played) AS times_played,\r\n" + 
 				"	F_CALC_COST(p.song_id, \"\", 1) AS song_cost,\r\n" + 
-				"	(\r\n" + 
-				"	    SELECT override_id FROM overrides\r\n" + 
-				"	    WHERE p.song_id LIKE CONCAT(override_id, '%')\r\n" + 
-				"	    ORDER BY CHAR_LENGTH(override_id) DESC\r\n" + 
-				"		LIMIT 1\r\n" + 
-				"	) AS override_id,\r\n" + 
-				"	o.song_pts,\r\n" + 
-				"    o.ost_pts,\r\n" + 
-				"    o.franchise_pts,\r\n" + 
-				"    o.time_checked,\r\n" + 
-				"    o.id\r\n" + 
-				"	\r\n" + 
-				"FROM playlist p \r\n" + 
-				"    LEFT JOIN ratings r ON r.song_id = p.song_id \r\n" + 
+				"	:oid AS override_id,\r\n" + 
+				"	:songPts AS song_pts,\r\n" + 
+				"	:ostPts AS ost_pts,\r\n" + 
+				"	:frPts AS franchise_pts,\r\n" + 
+				"	:tChecked AS time_checked\r\n" + 
+				"FROM playlist p\r\n" + 
+				"    LEFT JOIN ratings r ON r.song_id=p.song_id\r\n" + 
 				"    LEFT JOIN play_history h ON h.song_id = p.song_id AND \r\n" + 
-				"	 	UNIX_TIMESTAMP() - UNIX_TIMESTAMP(h.time_played) < F_READ_NUM_PARAM('times_played_check', 100000000) \r\n" +
-				"	 LEFT JOIN overrides o ON o.override_id=(\r\n" + 
-				"	    SELECT override_id FROM overrides\r\n" + 
-				"	    WHERE p.song_id LIKE CONCAT(override_id, '%')\r\n" + 
-				"	    ORDER BY CHAR_LENGTH(override_id) DESC\r\n" + 
-				"		LIMIT 1\r\n" + 
-				"	)\r\n" + 
-				"GROUP BY p.song_id \r\n" +
-				"HAVING override_id=:oid";
+				"            UNIX_TIMESTAMP() - UNIX_TIMESTAMP(h.time_played) < F_READ_NUM_PARAM('times_played_check', 100000000) \r\n" + 
+				"WHERE p.song_id IN\r\n" + 
+				"(\r\n" + 
+				"    SELECT pl.song_id FROM playlist pl WHERE\r\n" + 
+				"    (\r\n" + 
+				"        SELECT oi.override_id FROM \r\n" + 
+				"        (SELECT oi.override_id FROM overrides oi UNION (SELECT :oid)) oi \r\n" + 
+				"        WHERE INSTR(pl.song_id, oi.override_id) \r\n" + 
+				"        ORDER BY CHAR_LENGTH(oi.override_id) DESC LIMIT 1\r\n" + 
+				"    ) = :oid\r\n" + 
+				")\r\n" + 
+				"GROUP BY p.song_id";
 		
 		Map<String, Object> params = new HashMap<>();
 		params.put("oid", rule.getOverrideId());
+		params.put("songPts", rule.getSongPts());
+		params.put("ostPts", rule.getOstPts());
+		params.put("frPts", rule.getFranchisePts());
+		params.put("tChecked", rule.getTimeChecked());
 		return jdbcTemplate.query(sql, params, new SongRowMapper());
 	}
 	

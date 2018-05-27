@@ -177,6 +177,8 @@ public class MainWindowController
 	@FXML void clearOutConsole(ActionEvent event) { sysoLogTxtbox.setText(""); }
 	@FXML void skipSong(ActionEvent event) { foobar.skipSong(); }
 
+
+
 	/**
 	 * Pops up a file dialog at the playlist root, and allows the user to select 1 
 	 * or multiple song files, which will be added to the active queue
@@ -233,10 +235,10 @@ public class MainWindowController
 			}
 		}));
 	}
-	
-	
-	
-	
+
+
+
+
 	@FXML void emptyCurrentQueue(ActionEvent event) {
 		Alert a = new Alert(AlertType.CONFIRMATION);
 		a.setContentText("Really delete contents of Queue \"" +queueManager.getActiveQueue().getQueueDispName()+ "\"?");
@@ -255,7 +257,7 @@ public class MainWindowController
 		int selected = currentQueue.getSelectionModel().getSelectedIndex();
 		if(selected >= 0 && queueManager.activeQueueProperty().get() != null) { // don't try to delete if a queueEntry isn't selected
 			dbTaskQueue.submit(new DBTask("Remove song from \"queue_" +queueManager.getActiveQueue().getQueueDispName()+ "\"", () -> {
-//				log.info("FOOOOOOOO");
+				//				log.info("FOOOOOOOO");
 				currentQueue.getItems().remove(selected);
 			}));
 		}
@@ -310,7 +312,6 @@ public class MainWindowController
 	 * @param rule
 	 */
 	private void promptForPointCalc(List<Song> affectedSongs) {
-		if(!affectedSongs.isEmpty()) {
 			Alert a = new Alert(AlertType.CONFIRMATION);
 			a.setTitle("Confirm Point Recalculation");
 			a.setHeaderText("Some songs need to have points calculated!");
@@ -326,7 +327,6 @@ public class MainWindowController
 				pointCalc.setSongstoCalc(affectedSongs);
 				pointCalc.startTask();
 			}
-		}
 	}
 
 
@@ -335,27 +335,27 @@ public class MainWindowController
 	{
 		boolean shouldCommit = true;
 		OverrideRule fromInput = addOverrideRuleController.promptForRule();
-		if(ruleDao.ruleAlreadyExists(fromInput)) {
-			Alert a = new Alert(AlertType.ERROR, "", new ButtonType("Change Name"), new ButtonType("Update"), ButtonType.CANCEL);
-			a.setTitle("Duplicate Rule");
-			a.setHeaderText("Rule Error");
-			a.setContentText("Rule with override_id \"%s\" already exists!");
-			Optional<ButtonType> btn = a.showAndWait();
-
-			if(btn.get().getText().equals("Change Name")) {// they want to try again
-				overridesTbl_addRule(null); // do it through recursion as we aren't thread hopping so much here
-				shouldCommit = false;
+		if(fromInput != null) {
+			if(ruleManager.ruleExists(fromInput)) {
+				Alert a = new Alert(AlertType.ERROR, "", new ButtonType("Change Name"), new ButtonType("Update"), ButtonType.CANCEL);
+				a.setTitle("Duplicate Rule");
+				a.setHeaderText("Rule Error");
+				a.setContentText("Rule with override_id \"%s\" already exists!");
+				Optional<ButtonType> btn = a.showAndWait();
+	
+				if(btn.get().getText().equals("Change Name")) {// they want to try again
+					overridesTbl_addRule(null); // do it through recursion as we aren't thread hopping so much here
+					shouldCommit = false;
+				}
+				shouldCommit = btn.get().getText().equals("Update"); // ignore it, just update instead		
+			} 
+			if(shouldCommit) {
+				Util.runNewDaemon("Commit Rule", () -> { 
+					ruleManager.blockingAddOrUpdateRule(fromInput); 
+					promptAndPerformPointCalc(fromInput);
+				});
 			}
-			shouldCommit = btn.get().getText().equals("Update"); // ignore it, just update instead		
-		} 
-		if(shouldCommit) {
-			Util.runNewDaemon("Commit Rule", () -> { 
-				ruleDao.putRule(fromInput); 
-				List<Song> affectedSongs = songDao.getSongsAffectedByRule(fromInput);
-				Platform.runLater(() -> { promptForPointCalc(affectedSongs); });
-			});
 		}
-		ruleManager.refreshRuleTableContents(); // just do an update regardless of whether or not we changed anything specific
 	}
 
 
@@ -365,13 +365,10 @@ public class MainWindowController
 	@FXML void overridesTbl_dropRule(ActionEvent event) {
 		OverrideRule toRemove = overridesTbl.getSelectionModel().getSelectedItem();
 		if(!toRemove.isRootOverride()) {
-			overridesTbl.getItems().remove(toRemove);
 			Util.runNewDaemon("Drop Rule", ()-> {
 				try { 
-					List<Song> affectedSongs = songDao.getSongsAffectedByRule(toRemove);
-					ruleDao.dropRule(toRemove); 
-					ruleManager.refreshRuleTableContents();
-					Platform.runLater(() -> { promptForPointCalc(affectedSongs); });
+					ruleManager.blockingRemoveRule(toRemove);
+					promptAndPerformPointCalc(toRemove);
 				} catch (OverrideRuleException e) { log.error("", e); }
 			});
 		} else {
@@ -379,7 +376,6 @@ public class MainWindowController
 			a.setContentText("Cannot delete root override rule!");
 			a.showAndWait();
 		}
-		ruleManager.refreshRuleTableContents(); // just do an update regardless of whether or not we changed anything specific
 	}
 
 
@@ -391,17 +387,53 @@ public class MainWindowController
 		OverrideRule selectedRule = overridesTbl.getSelectionModel().getSelectedItem();
 		if(selectedRule != null) {
 			OverrideRule newRule = addOverrideRuleController.editRule(selectedRule, false);
-			Util.runNewDaemon("Put Override Rule", () -> {
-				ruleDao.putRule(newRule); 
-				List<Song> affectedSongs = songDao.getSongsAffectedByRule(newRule);
-				Platform.runLater(() -> { promptForPointCalc(affectedSongs); });
-			});
+			ruleManager.blockingAddOrUpdateRule(newRule);
+			promptAndPerformPointCalc(newRule);
 		} else {
 			Alert a = new Alert(AlertType.ERROR);
 			a.setContentText("Please select a rule to edit!");
 		}
-		ruleManager.refreshRuleTableContents(); // just do an update regardless of whether or not we changed anything specific
 	}
+
+
+
+	@FXML void createSongCooldownRule(ActionEvent event) {
+		OverrideRule o = new OverrideRule();
+		OverrideRule defaultRule = ruleManager.getDefaultRule();
+
+		o.setOverrideId(songsTbl.getSelectionModel().getSelectedItem().getSongId());
+		o.setFranchisePts(defaultRule.getFranchisePts());
+		o.setOstPts(defaultRule.getOstPts());
+		o.setSongPts(defaultRule.getSongPts());
+		o.setTimeChecked(defaultRule.getTimeChecked());
+
+		OverrideRule toAdd = addOverrideRuleController.editRule(o, false);
+		ruleManager.addOrUpdateRule(toAdd);
+		promptAndPerformPointCalc(toAdd);
+	}
+
+
+
+	/**
+	 * Prompts for and performs a point calc update for a changed overrideRule
+	 * @param changed the rule that has been updated and requires change calculations
+	 */
+	private void promptAndPerformPointCalc(OverrideRule changed) {
+		Platform.runLater(() -> {
+			// warn that this could be a time consuming process, so they don't think it crashed or anything
+			Alert calcPopup = new Alert(AlertType.INFORMATION);
+			calcPopup.setContentText("Calculating affected songs. This may take some time...");
+			calcPopup.show();
+			Util.runNewDaemon("Put Override Rule", () -> {
+				List<Song> affectedSongs = songDao.getSongsAffectedByRule(changed);
+				Platform.runLater(() -> { 
+					calcPopup.hide();
+					promptForPointCalc(affectedSongs); 
+				});
+			});
+		});
+	}
+
 
 
 
@@ -413,7 +445,7 @@ public class MainWindowController
 	@FXML void regenPlaylist(ActionEvent event) {
 		plGen.startTask();
 	}
-	
+
 	/**
 	 * Prompts the user asking if they want to clean the playlist, and if they select yes, launches the
 	 * playlist generator in clean mode
@@ -424,7 +456,7 @@ public class MainWindowController
 		a.setContentText("This will reset ALL cooldown and play statistics for songs not in the playlist directory! Continue?");
 		a.setTitle("Clean Build Playlist");
 		a.setHeaderText("Clean Build Playlist");
-		
+
 		Optional<ButtonType> btn = a.showAndWait();
 		if(btn.isPresent() && btn.get() == ButtonType.OK) {
 			plGen.startTask(true);
@@ -515,12 +547,12 @@ public class MainWindowController
 				});
 		});
 	}
-	
-	
-	
-	
+
+
+
+
 	@FXML void removeOst(ActionEvent e) {
-		
+
 	}
 
 
@@ -579,7 +611,7 @@ public class MainWindowController
 
 		// setup default values
 		queueManager.setActiveQueue("main");
-		
+
 		// force an update on this property. Needed because if the queue is filled at app start, 
 		// the requestStatus file won't update and will give an invalid output
 		String ctlRequestModeVal = ctlRequestMode.getValue();
@@ -587,11 +619,11 @@ public class MainWindowController
 		ctlRequestMode.setValue(ctlRequestModeVal);
 	}
 
-	
-	
-	
-	
-	
+
+
+
+
+
 
 	/**
 	 * Binds all the needed properties for the PropertyManager from the UI that couldn't be
@@ -620,11 +652,11 @@ public class MainWindowController
 				Bindings.createStringBinding(
 						() -> Util.intSecondsToTimeString(propertyManager.getQueueLengthProperty().get()), 
 						propertyManager.getQueueLengthProperty()));
-		
+
 		propertyManager.getRequestsOpenProperty().addListener(
 				(obs, oldVal, newVal) -> Util.runNewDaemon(
 						() -> settingsManager.putSetting("requests_open", new SettingVal(newVal)) 
-				));
+						));
 
 
 		// add any other vanilla listeners not through the propertyManager
@@ -641,7 +673,7 @@ public class MainWindowController
 							settingsManager.putMultipleSettings(settings); 
 						});
 				});
-		
+
 		// bind file properties
 		fileManager.getNowPlayingRating().BoundProp().bind(propertyManager.getNowPlayingRatingProperty());
 		fileManager.getRequestedBy().BoundProp().bind(propertyManager.getNowPlayingViewerProperty());
@@ -684,7 +716,7 @@ public class MainWindowController
 			Util.runNewDaemon("Update is_playing", () -> settingsManager.putSetting("is_now_playing", new SettingVal(newVal == MusicPlayerState.PLAYING)));
 		});
 
-//		foobar.reset();
+		//		foobar.reset();
 	}
 
 
@@ -864,7 +896,7 @@ public class MainWindowController
 					int from = Integer.parseInt(db.getString());
 					if(row.getIndex() != from) {
 						int to = row.isEmpty() ? currentQueue.getItems().size() : row.getIndex();
-						
+
 						// because we are removing the element before adding it back, gotta decrement the destination index
 						if(to > from)
 							to--;

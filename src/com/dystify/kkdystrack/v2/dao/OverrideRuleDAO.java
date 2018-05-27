@@ -31,7 +31,7 @@ public class OverrideRuleDAO
 			OverrideRule o = new OverrideRule();
 
 			o.setFranchisePts(rs.getDouble("franchise_pts"));
-			o.setId(rs.getInt("id"));
+			// o.setId(rs.getInt("id"));
 			o.setOstPts(rs.getDouble("ost_pts"));
 			o.setOverrideId(rs.getString("override_id"));
 			o.setSongPts(rs.getDouble("song_pts"));
